@@ -1,86 +1,84 @@
 import 'package:flutter/material.dart';
+import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text("Transactions"),
-            centerTitle: true,
-            backgroundColor: Colors.cyan,
-            leading: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.search),
-            ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0; // 0 = Transactions, 1 = Stats
+
+  final List<Widget> _pages = [
+    TransactionsPage(),
+    StatsPage(),
+    SettingsPage(),
+  ];
+
+  void _onItemTapped(int index) {
+    if (_selectedIndex == index) return; // Prevent unnecessary reload
+
+    setState(() {
+      _selectedIndex = index; // Change the displayed page
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex], // Display the selected page
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: "Trans.",
           ),
-          body: Column(
-            mainAxisSize: MainAxisSize
-                .min, // Prevents Column from taking unnecessary space
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_back_ios_new_outlined),
-                  ),
-                  Text("Mar 2023"),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_forward_ios_outlined),
-                  ),
-                ],
-              ),
-              TabBar(
-                tabs: [
-                  Tab(text: "Daily"),
-                  Tab(text: "Calender"),
-                  Tab(text: "Monthly"),
-                  Tab(text: "Desc."),
-                ],
-              ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    Icon(Icons.directions_car),
-                    Icon(Icons.directions_transit),
-                    Icon(Icons.directions_bike),
-                    Icon(Icons.directions_bike),
-                  ],
-                ),
-              ),
-            ],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_graph_rounded),
+            label: "Stats",
           ),
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.cyan,
-            child: Icon(Icons.add),
-            onPressed: () {},
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
           ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: 0,
-            onTap: (index) {},
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.book),
-                label: "Trans.",
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.auto_graph_rounded),
-                label: "Stats",
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
+    );
+  }
+}
+
+// 🟢 Dummy Transactions Page (Replace with real implementation)
+class TransactionsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Transactions"), backgroundColor: Colors.cyan),
+      body: Center(child: Text("Transactions Page")),
+    );
+  }
+}
+
+class SettingsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Settings"), backgroundColor: Colors.cyan),
+      body: Center(child: Text("Settings Page")),
     );
   }
 }
