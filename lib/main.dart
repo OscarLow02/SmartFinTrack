@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     TransactionsPage(),
-    StatsPage(),
+    const StatsPage(),
     SettingsPage(),
   ];
 
@@ -67,8 +67,9 @@ class TransactionsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Transactions"), backgroundColor: Colors.cyan),
-      body: Center(child: Text("Transactions Page")),
+      appBar: AppBar(
+          title: const Text("Transactions"), backgroundColor: Colors.cyan),
+      body: const Center(child: Text("Transactions Page")),
     );
   }
 }
@@ -77,8 +78,9 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Settings"), backgroundColor: Colors.cyan),
-      body: Center(child: Text("Settings Page")),
+      appBar:
+          AppBar(title: const Text("Settings"), backgroundColor: Colors.cyan),
+      body: const Center(child: Text("Settings Page")),
     );
   }
 }
