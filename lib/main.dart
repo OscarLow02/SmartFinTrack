@@ -13,7 +13,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -36,7 +35,7 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = [
     TransactionsPage(),
-    const StatsPage(),
+    const StatsMain(),
     SettingsPage(),
   ];
 

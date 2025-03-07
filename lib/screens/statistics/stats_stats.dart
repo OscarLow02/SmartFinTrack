@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import "stats_piechart.dart";
-import 'ViewMode.dart'; // Import modularized DateSelector widget
+import 'stats_piechart.dart';
+import 'ViewMode.dart';
 
 class StatsTab extends StatefulWidget {
-  final String selectedPeriod;
-  final Function(String) onPeriodChanged;
-
   const StatsTab({
     super.key,
-    required this.selectedPeriod,
-    required this.onPeriodChanged,
   });
 
   @override
@@ -19,41 +14,61 @@ class StatsTab extends StatefulWidget {
 class _StatsTabState extends State<StatsTab>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late String _selectedPeriod;
+  late DateTime _selectedDate;
+  String selectedPeriod = "Monthly"; // ✅ Default to Monthly
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _selectedPeriod = selectedPeriod;
+    _selectedDate = DateTime.now(); // ✅ Start with the current date
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  /// 🟢 Update Date based on ViewMode selection
+  void _updateDate(DateTime newDate) {
+    setState(() => _selectedDate = newDate);
+  }
+
+  /// 🟢 Convert DateTime to String for StatsPieChart
+  String _formatDate(DateTime date) {
+    return _selectedPeriod == "Monthly"
+        ? "${ViewMode.getMonthName(date.month)} ${date.year}" // "Jun 2023"
+        : "${date.year}"; // "2023"
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 🟢 Modularized Date Selector
-        DateSelector(
-          selectedPeriod: widget.selectedPeriod,
-          onPeriodChanged: widget.onPeriodChanged,
+        // 🟢 ViewMode for Date & Period Selection
+        ViewMode(
+          selectedPeriod: _selectedPeriod,
+          onPeriodChanged: (newValue) {
+            setState(() {
+              _selectedPeriod = newValue;
+              _selectedDate = DateTime.now(); // ✅ Reset dynamically
+            });
+          },
+          onDateChanged: _updateDate,
           tabController: _tabController,
+          showTabs: true,
         ),
 
-        // 🟢 Income & Expenses Pie Chart
+        // 🟢 Tab View (Income & Expenses Pie Charts)
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
+            children: [
               StatsPieChart(
                 title: "Income",
                 categories: ["Salary", "Allowance"],
                 amounts: [3090.85, 150.00],
                 percentages: [95, 5],
                 defaultColor: Colors.green,
+                selectedDate: _formatDate(_selectedDate),
+                selectedPeriod: _selectedPeriod,
               ),
               StatsPieChart(
                 title: "Expenses",
@@ -61,6 +76,8 @@ class _StatsTabState extends State<StatsTab>
                 amounts: [300.00, 150.50, 80.25],
                 percentages: [50, 30, 20],
                 defaultColor: Colors.red,
+                selectedDate: _formatDate(_selectedDate),
+                selectedPeriod: _selectedPeriod,
               ),
             ],
           ),

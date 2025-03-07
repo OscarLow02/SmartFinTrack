@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:smart_fintrack/data/dummy_transactions.dart';
 
 class StatsLineGraph extends StatelessWidget {
-  final String categoryGroup; // e.g., "Salary", "Food & Drinks"
+  final String categoryGroup; // Change from List<String> to String
+  final String selectedDate;
+  final String selectedPeriod;
 
-  const StatsLineGraph({super.key, required this.categoryGroup});
-
+  const StatsLineGraph({
+    super.key,
+    required this.categoryGroup, // Now a single string
+    required this.selectedDate,
+    required this.selectedPeriod,
+  });
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> transactions = dummyTransactions;
@@ -18,7 +24,7 @@ class StatsLineGraph extends StatelessWidget {
           },
         ),
         title: Text(
-          categoryGroup,
+          categoryGroup as String,
           style: const TextStyle(
             fontSize: 24,
             color: Colors.white,
@@ -40,9 +46,12 @@ class StatsLineGraph extends StatelessWidget {
                   icon: const Icon(Icons.arrow_back_ios),
                   onPressed: () {},
                 ),
-                const Expanded(
+                Expanded(
                   child: Center(
-                    child: Text("Mar 2023", style: TextStyle(fontSize: 18)),
+                    child: Text(
+                      selectedDate, // ✅ Now it dynamically updates!
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   ),
                 ),
                 IconButton(
@@ -120,7 +129,7 @@ class StatsLineGraph extends StatelessWidget {
                                   children: [
                                     // Category Group (Only displayed on first row)
                                     i == 0
-                                        ? Text(categoryGroup,
+                                        ? Text(categoryGroup as String,
                                             style: const TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.grey))

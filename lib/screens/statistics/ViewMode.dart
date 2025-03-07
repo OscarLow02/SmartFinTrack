@@ -1,49 +1,193 @@
 import 'package:flutter/material.dart';
 
-class DateSelector extends StatelessWidget {
+class ViewMode extends StatefulWidget {
   final String selectedPeriod;
   final Function(String) onPeriodChanged;
-  final TabController tabController;
-  final bool showTabs; // 🟢 New parameter to control tab visibility
+  final Function(DateTime) onDateChanged;
+  final TabController? tabController;
+  final bool showTabs;
 
-  const DateSelector({
+  const ViewMode({
     super.key,
     required this.selectedPeriod,
     required this.onPeriodChanged,
-    required this.tabController,
-    this.showTabs = true, // Default: Show tabs unless specified otherwise
+    required this.onDateChanged,
+    this.tabController,
+    this.showTabs = true,
   });
 
   @override
-  Widget build(BuildContext context) {
-    const Color selectedColor = Color.fromARGB(255, 36, 89, 185);
-    const Color unselectedColor = Colors.black;
+  State<ViewMode> createState() => _ViewModeState();
 
+  /// 🟢 Convert month number to three-letter abbreviation
+  static String getMonthName(int month) {
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+    return monthNames[month - 1];
+  }
+}
+
+/// 🟢 Convert three-letter month abbreviation to month index
+int getMonthIndex(String monthName) {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
+  return monthNames.indexOf(monthName) + 1; // +1 to match month number
+}
+
+class _ViewModeState extends State<ViewMode> {
+  late DateTime selectedDate;
+  bool isCalendarOpen = false; // Calendar popup visibility
+
+  @override
+  void initState() {
+    super.initState();
+    selectedDate = DateTime.now(); // Default to current month/year
+  }
+
+  /// 🟢 Change Date (Previous / Next)
+  void changeDate(int offset) {
+    setState(() {
+      if (widget.selectedPeriod == "Monthly") {
+        selectedDate = DateTime(selectedDate.year, selectedDate.month + offset);
+      } else {
+        selectedDate = DateTime(selectedDate.year + offset);
+      }
+    });
+
+    widget.onDateChanged(selectedDate);
+  }
+
+  /// 🟢 Get Formatted Date for Display
+  String getFormattedDate() {
+    return widget.selectedPeriod == "Monthly"
+        ? "${ViewMode.getMonthName(selectedDate.month)} ${selectedDate.year}" // "Jun 2023"
+        : "${selectedDate.year}"; // "2023"
+  }
+
+  /// 🟢 Show Calendar Popup for Month Selection
+  void openCalendarPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("${selectedDate.year}",
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              )
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // "This Month" Button
+                TextButton(
+                  onPressed: () {
+                    setState(() => selectedDate = DateTime.now());
+                    widget.onDateChanged(selectedDate);
+                    Navigator.pop(context);
+                  },
+                  child:
+                      const Text("This Month", style: TextStyle(fontSize: 14)),
+                ),
+
+                // List of 12 Months (Single Column for simplicity)
+                SizedBox(
+                  height: 300, // Set a height to avoid grid view issues
+                  child: ListView.builder(
+                    itemCount: 12,
+                    itemBuilder: (context, index) {
+                      return TextButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedDate =
+                                DateTime(selectedDate.year, index + 1);
+                          });
+                          widget.onDateChanged(selectedDate);
+                          Navigator.pop(context);
+                        },
+                        child: Text(ViewMode.getMonthName(index + 1)),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        // 🟢 Month/Year Selector with Dropdown
+        // 🟢 Date Selector Row
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Left Arrow Button
+              // Left Arrow - Previous Month/Year
               IconButton(
-                onPressed: () {},
+                onPressed: () => changeDate(-1),
                 icon: const Icon(Icons.arrow_back_ios),
               ),
 
-              // 🟢 Date Display
-              const Expanded(
+              // Date Display (Clickable for Calendar in Monthly Mode)
+              Expanded(
                 flex: 7,
                 child: Center(
-                  child: Text("Mar 2023", style: TextStyle(fontSize: 16)),
+                  child: widget.selectedPeriod == "Monthly"
+                      ? TextButton(
+                          onPressed: openCalendarPopup,
+                          child: Text(getFormattedDate(),
+                              style: const TextStyle(fontSize: 16)),
+                        )
+                      : Text(
+                          getFormattedDate(),
+                          style: const TextStyle(fontSize: 16),
+                        ),
                 ),
               ),
 
-              // Right Arrow Button
+              // Right Arrow - Next Month/Year
               IconButton(
-                onPressed: () {},
+                onPressed: () => changeDate(1),
                 icon: const Icon(Icons.arrow_forward_ios),
               ),
 
@@ -60,9 +204,11 @@ class DateSelector extends StatelessWidget {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: selectedPeriod,
+                      value: widget.selectedPeriod,
                       onChanged: (String? newValue) {
-                        onPeriodChanged(newValue!);
+                        if (newValue != null) {
+                          widget.onPeriodChanged(newValue);
+                        }
                       },
                       items: const [
                         DropdownMenuItem(
@@ -94,18 +240,11 @@ class DateSelector extends StatelessWidget {
           ),
         ),
 
-        // 🟢 TabBar (Only show if `showTabs` is true)
-        if (showTabs)
+        // 🟢 Show Tabs If Needed
+        if (widget.showTabs && widget.tabController != null)
           TabBar(
-            controller: tabController,
-            tabs: const [
-              Tab(text: "Income"),
-              Tab(text: "Expenses"),
-            ],
-            labelColor: selectedColor,
-            indicatorColor: selectedColor,
-            unselectedLabelColor: unselectedColor,
-            indicatorSize: TabBarIndicatorSize.tab,
+            controller: widget.tabController,
+            tabs: const [Tab(text: "Income"), Tab(text: "Expenses")],
           ),
       ],
     );
