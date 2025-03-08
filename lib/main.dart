@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_fintrack/firebase_options.dart';
 import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
+import 'screens/transactions/transactions_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,7 +13,6 @@ void main() async {
 
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -70,18 +70,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-// 🟢 Dummy Transactions Page (Replace with real implementation)
-class TransactionsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: const Text("Transactions"), backgroundColor: Colors.cyan),
-      body: const Center(child: Text("Transactions Page")),
     );
   }
 }
