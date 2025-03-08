@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:smart_fintrack/data/dummy_transactions.dart';
+import 'package:smart_fintrack/widgets/ViewMode.dart';
 
-class StatsLineGraph extends StatelessWidget {
+class StatsLineGraph extends StatefulWidget {
   final String categoryGroup; // Change from List<String> to String
   final String selectedDate;
   final String selectedPeriod;
@@ -12,19 +13,107 @@ class StatsLineGraph extends StatelessWidget {
     required this.selectedDate,
     required this.selectedPeriod,
   });
+
+  @override
+  _StatsLineGraphState createState() => _StatsLineGraphState();
+}
+
+class _StatsLineGraphState extends State<StatsLineGraph> {
+  late String _selectedPeriod;
+  late DateTime _selectedDate;
+  String selectedPeriod = "Monthly"; // ✅ Default to Monthly
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPeriod = widget.selectedPeriod; // ✅ Use widget value
+    // ✅ Convert selectedDate to DateTime properly
+    try {
+      _selectedDate = _convertToDate(widget.selectedDate);
+    } catch (e) {
+      _selectedDate =
+          DateTime(2000, 1, 1); // Fallback to a default date if error occurs
+    }
+  }
+
+  /// 🛠 Convert "Jan 2025" or "2025" → DateTime (Default to 1st day of the month)
+  DateTime _convertToDate(String input) {
+    List<String> monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ];
+
+    List<String> shortMonthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+
+    List<String> parts = input.split(" ");
+    if (parts.length == 2) {
+      String monthStr = parts[0];
+      String yearStr = parts[1];
+
+      int month = shortMonthNames.contains(monthStr)
+          ? shortMonthNames.indexOf(monthStr) + 1
+          : monthNames.indexOf(monthStr) + 1; // Convert month name to number
+
+      int year = int.tryParse(yearStr) ?? DateTime.now().year; // Convert year
+
+      if (month > 0) {
+        return DateTime(
+            year, month, 1); // Use the first day of the selected month
+      }
+    } else if (parts.length == 1) {
+      int year = int.tryParse(parts[0]) ?? DateTime.now().year;
+      return DateTime(
+          year, 1, 1); // If only year is provided, default to Jan 1st
+    }
+
+    throw FormatException(
+        "Invalid date format: $input"); // Handle invalid format
+  }
+
+  /// 🟢 Update Date based on ViewMode selection
+  void _updateDate(DateTime newDate) {
+    setState(() => _selectedDate = newDate);
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> transactions = dummyTransactions;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
         title: Text(
-          categoryGroup as String,
+          widget.categoryGroup,
           style: const TextStyle(
             fontSize: 24,
             color: Colors.white,
@@ -36,30 +125,19 @@ class StatsLineGraph extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // 🟢 Date Selector (Same as stats_stats.dart)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios),
-                  onPressed: () {},
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      selectedDate, // ✅ Now it dynamically updates!
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward_ios),
-                  onPressed: () {},
-                ),
-              ],
-            ),
+          // 🟢 Date Selector
+          ViewMode(
+            selectedPeriod: _selectedPeriod,
+            onPeriodChanged: (newValue) {
+              setState(() {
+                _selectedPeriod = newValue;
+                _selectedDate = DateTime.now();
+              });
+            },
+            onDateChanged: _updateDate,
+            initialDate: _selectedDate,
+            showTabs: false,
+            showPeriodDropdown: false,
           ),
 
           // 🟢 Line Graph Placeholder
@@ -129,7 +207,7 @@ class StatsLineGraph extends StatelessWidget {
                                   children: [
                                     // Category Group (Only displayed on first row)
                                     i == 0
-                                        ? Text(categoryGroup as String,
+                                        ? Text(widget.categoryGroup,
                                             style: const TextStyle(
                                                 fontSize: 14,
                                                 color: Colors.grey))

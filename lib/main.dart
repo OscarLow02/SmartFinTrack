@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:smart_fintrack/firebase_options.dart';
 import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
+import 'package:smart_fintrack/services/date_provider.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,7 +12,15 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+            create: (context) => DateProvider()), // ✅ Register DateProvider
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'ViewMode.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_fintrack/widgets/ViewMode.dart';
 import 'stats_budget_settings.dart';
+import 'package:smart_fintrack/services/date_provider.dart';
 
 class StatsBudget extends StatefulWidget {
   const StatsBudget({
@@ -12,9 +14,6 @@ class StatsBudget extends StatefulWidget {
 }
 
 class _StatsBudgetState extends State<StatsBudget> {
-  late String _selectedPeriod;
-  late DateTime _selectedDate;
-  String selectedPeriod = "Monthly"; // ✅ Default to Monthly
   double budgetLimit = 1500.00; // Example budget limit
   double spentAmount = 800.00; // Example spent amount
   double remainingAmount = 0.0;
@@ -23,8 +22,6 @@ class _StatsBudgetState extends State<StatsBudget> {
   @override
   void initState() {
     super.initState();
-    _selectedPeriod = selectedPeriod;
-    _selectedDate = DateTime.now(); // ✅ Start with the current date
     _calculateBudget();
   }
 
@@ -37,32 +34,20 @@ class _StatsBudgetState extends State<StatsBudget> {
     });
   }
 
-  /// 🟢 Update Date based on ViewMode selection
-  void _updateDate(DateTime newDate) {
-    setState(() => _selectedDate = newDate);
-  }
-
-  /// 🟢 Convert DateTime to String for StatsPieChart
-  String _formatDate(DateTime date) {
-    return _selectedPeriod == "Monthly"
-        ? "${ViewMode.getMonthName(date.month)} ${date.year}" // "Jun 2023"
-        : "${date.year}"; // "2023"
-  }
-
   @override
   Widget build(BuildContext context) {
+    final dateProvider =
+        Provider.of<DateProvider>(context); // ✅ Access Global State
+
     return Column(
       children: [
         // 🟢 ViewMode for Period & Date Selection
         ViewMode(
-          selectedPeriod: _selectedPeriod,
-          onPeriodChanged: (newValue) {
-            setState(() {
-              _selectedPeriod = newValue;
-              _selectedDate = DateTime.now();
-            });
-          },
-          onDateChanged: _updateDate,
+          selectedPeriod: dateProvider.selectedPeriod,
+          onPeriodChanged: (newValue) =>
+              dateProvider.setSelectedPeriod(newValue),
+          onDateChanged: (newDate) => dateProvider.setSelectedDate(newDate),
+          initialDate: dateProvider.selectedDate,
           tabController: DefaultTabController.of(context),
           showTabs: false,
         ),
@@ -82,7 +67,7 @@ class _StatsBudgetState extends State<StatsBudget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Remaining ($_selectedPeriod)",
+                          "Remaining (${dateProvider.selectedPeriod})",
                           style:
                               const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
@@ -109,7 +94,7 @@ class _StatsBudgetState extends State<StatsBudget> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => StatsBudgetSettings(
-                              selectedPeriod: _selectedPeriod,
+                              selectedPeriod: dateProvider.selectedPeriod,
                             ),
                           ),
                         );
@@ -135,7 +120,7 @@ class _StatsBudgetState extends State<StatsBudget> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _selectedPeriod,
+                            dateProvider.selectedPeriod,
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.grey),
                           ),

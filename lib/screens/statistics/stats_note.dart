@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'ViewMode.dart';
+import 'package:smart_fintrack/widgets/ViewMode.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_fintrack/services/date_provider.dart';
 
 class StatsNote extends StatefulWidget {
   const StatsNote({
@@ -12,15 +14,11 @@ class StatsNote extends StatefulWidget {
 
 class _StatsNoteState extends State<StatsNote>
     with SingleTickerProviderStateMixin {
-  late String _selectedPeriod;
   late TabController _tabController;
-  late DateTime _selectedDate;
-  String selectedPeriod = "Monthly"; // ✅ Default to Monthly
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now(); // ✅ Start with the current date
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -30,20 +28,11 @@ class _StatsNoteState extends State<StatsNote>
     super.dispose();
   }
 
-  /// 🟢 Update Date based on ViewMode selection
-  void _updateDate(DateTime newDate) {
-    setState(() => _selectedDate = newDate);
-  }
-
-  /// 🟢 Convert DateTime to String for StatsPieChart
-  String _formatDate(DateTime date) {
-    return _selectedPeriod == "Monthly"
-        ? "${ViewMode.getMonthName(date.month)} ${date.year}" // "Jun 2023"
-        : "${date.year}"; // "2023"
-  }
-
   @override
   Widget build(BuildContext context) {
+    final dateProvider =
+        Provider.of<DateProvider>(context); // ✅ Access Global State
+
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -56,16 +45,12 @@ class _StatsNoteState extends State<StatsNote>
         children: [
           // 🟢 ViewMode for Date & Period Selection
           ViewMode(
-            selectedPeriod: selectedPeriod,
-            onPeriodChanged: (newValue) {
-              setState(() {
-                _selectedPeriod = newValue;
-                _selectedDate = DateTime.now(); // ✅ Reset dynamically
-              });
-            },
-            onDateChanged: _updateDate,
+            selectedPeriod: dateProvider.selectedPeriod,
+            onPeriodChanged: (newValue) =>
+                dateProvider.setSelectedPeriod(newValue),
+            onDateChanged: (newDate) => dateProvider.setSelectedDate(newDate),
+            initialDate: dateProvider.selectedDate,
             tabController: _tabController,
-            showTabs: true,
           ),
 
           // 🟢 Tab View
