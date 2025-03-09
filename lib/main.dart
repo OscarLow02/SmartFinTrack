@@ -5,6 +5,7 @@ import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_fintrack/screens/transactions/transactions_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
