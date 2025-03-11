@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.book),
             label: "Trans.",
           ),
-          BottomNavigationBarItem(
+          BottomNavigationBarItem(  
             icon: Icon(Icons.auto_graph_rounded),
             label: "Stats",
           ),

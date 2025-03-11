@@ -4,11 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:smart_fintrack/screens/user/sign_in.dart';
+//import 'package:smart_fintrack/widgets/custom_snackbar.dart';
 
-class AuthService{
+class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   // sign up function
   Future<String?> signUp(String username, String email, String password) async {
     try {
@@ -32,7 +34,7 @@ class AuthService{
       return null;
     } on FirebaseAuthException catch (e) {
       return e.message;
-    }catch(e){
+    } catch (e) {
       return "An error occurred. Please try again later.";
     }
   }
@@ -47,20 +49,23 @@ class AuthService{
       }
 
       // Get authentication details
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       // Sign in with Google credential
-      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
       User? user = userCredential.user;
 
       if (user != null) {
         // Check if user exists in Firestore
-        DocumentSnapshot userDoc = await _firestore.collection("users").doc(user.uid).get();
-        
+        DocumentSnapshot userDoc =
+            await _firestore.collection("users").doc(user.uid).get();
+
         if (!userDoc.exists) {
           // If new user, store details in Firestore
           await _firestore.collection("users").doc(user.uid).set({
@@ -92,42 +97,134 @@ class AuthService{
       );
 
       // retrieve user role
-      DocumentSnapshot userDoc = await _firestore.collection("users").doc(userCredent.user!.uid).get();
+      DocumentSnapshot userDoc =
+          await _firestore.collection("users").doc(userCredent.user!.uid).get();
 
-      if(userDoc.exists){
+      if (userDoc.exists) {
         String role = userDoc.get('role');
+        String status = userDoc.get('status');
 
-        if(role == 'user'){
+        await recordAuthLog(userCredent.user!.uid, "Successful Login");
+
+        if (role == 'user' && status == 'Active') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HomePage()),
           );
-        }else if (role == 'admin'){
+        } else if (role == 'admin') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => AdminBottomBar()),
           );
+        } else if (status == 'Suspended') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Center(
+                child: Text(
+                  "This account is suspended. Please contact support.",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(
+              child: Text(
+                "This email account is deactivated. Please contact support.",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } on FirebaseAuthException catch (e) {
-      String errorMessage = "Incorrect email or password! Please try again later.";
+      String errorMessage =
+          "Incorrect email or password! Please try again later.";
+
       if (e.code == 'user-not-found') {
         errorMessage = 'No user found for that email.';
       } else if (e.code == 'wrong-password') {
         errorMessage = 'Incorrect password.';
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Center(
+            child: Text(
+              errorMessage,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      QuerySnapshot userSnapShot = await _firestore
+          .collection("users")
+          .where("email", isEqualTo: email)
+          .get();
+      if (userSnapShot.docs.isNotEmpty) {
+        await recordAuthLog(userSnapShot.docs[0].id, "Failed Login");
+      }
+    }
+  }
+
+  // get user info
+  Stream<List<Map<String, dynamic>>> getUsersInfo() {
+    return _firestore.collection("users").snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    });
+  }
+
+  // sign out function
+  Future<void> signOut(BuildContext context) async {
+    try{
+      User? user = _auth.currentUser;
+
+      if (user != null) {
+        await recordAuthLog(user.uid, "Logout");
+      }
+
+      await _auth.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => SignIn()),
+        (route) => false,  // Remove all routes from stack
+      );
+    }catch (e) {
+      print("Error signing out: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              "Error signing out. Please try again later.",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Stream<List<Map<String, dynamic>>> getUsersInfo() {
-    return _firestore.collection("users").snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) => doc.data()).toList();
-    });
+  // record user activity log
+  Future<void> recordAuthLog(String userID, String action) async {
+    try{
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userID)
+          .collection('logs')
+          .add({
+        "action": action,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+    }catch(e) {
+      print("Error recording log: $e");
+    }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:smart_fintrack/screens/admin/customize_content.dart';
 import 'package:smart_fintrack/screens/admin/support.dart';
 import 'package:smart_fintrack/screens/admin/systemmonitor.dart';
-import 'package:smart_fintrack/screens/admin/usermanage.dart';
+import 'package:smart_fintrack/screens/admin/usermanage/usermanage.dart';
 import 'package:flutter/material.dart';
 
 class AdminBottomBar extends StatefulWidget {
@@ -39,7 +39,7 @@ class _AdminDashboardState extends State<AdminBottomBar> {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.people, size: 30,), 
             label: "Users"
