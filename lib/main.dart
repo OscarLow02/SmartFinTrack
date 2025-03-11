@@ -5,6 +5,7 @@ import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:smart_fintrack/screens/transactions/transactions_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,18 +80,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-// 🟢 Dummy Transactions Page (Replace with real implementation)
-class TransactionsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: const Text("Transactions"), backgroundColor: Colors.cyan),
-      body: const Center(child: Text("Transactions Page")),
     );
   }
 }
