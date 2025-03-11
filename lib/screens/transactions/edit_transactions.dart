@@ -3,23 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// Add camera function
-
-class TransactionInputWidget extends StatefulWidget {
+class EditTransactions extends StatefulWidget {
   final String type;
 
-  const TransactionInputWidget({super.key, this.type = "income"});
+  final QueryDocumentSnapshot currentTransaction;
+
+  const EditTransactions(
+      {super.key, this.type = "income", required this.currentTransaction});
 
   @override
-  _TransactionInputWidgetState createState() => _TransactionInputWidgetState();
+  _EditTransactionsState createState() => _EditTransactionsState();
 }
 
-class _TransactionInputWidgetState extends State<TransactionInputWidget> {
+class _EditTransactionsState extends State<EditTransactions> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
   final TextEditingController _otherController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
+  late DateTime _selectedDate;
 
   late String _selectedCategory;
   String _selectedAccount = 'Cash';
@@ -59,13 +60,23 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
   void initState() {
     super.initState();
 
-    if (widget.type == "income") {
-      _selectedCategory =
-          _incomeCategories[0]; // Default to first income category
+    _selectedDate = DateTime.parse(widget.currentTransaction["dateTime"]);
+    _amountController.text = widget.currentTransaction["amount"].toString();
+
+    if (widget.currentTransaction["type"] != 'transfer') {
+      _selectedCategory = widget.currentTransaction["category"];
     } else {
-      _selectedCategory =
-          _expenseCategories[0]; // Default to first expense category
+      if (widget.type == "income") {
+        _selectedCategory = _incomeCategories[0];
+      } else {
+        _selectedCategory = _expenseCategories[0];
+      }
+
+      _selectedAccount = widget.currentTransaction["from"];
+      _selectedAccount2 = widget.currentTransaction["to"];
     }
+
+    _noteController.text = widget.currentTransaction["note"];
   }
 
   void _pickDate() async {
@@ -103,7 +114,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
             .showSnackBar(const SnackBar(content: Text('User not signed in')));
         return;
       }
-      String userId = user.uid; // Get UID of logged-in user
+      String userId = user.uid;
 
       // ✅ Prepare transaction data
       Map<String, dynamic> transactionData = {
@@ -122,27 +133,21 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
         transactionData['category'] = _selectedCategory;
       }
 
-      // ✅ Save inside the user's document: "users/{uid}/transactions"
+      // ✅ Update the existing transaction instead of adding a new one
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('transactions')
-          .add(transactionData);
+          .doc(widget.currentTransaction.id) // ✅ Update by transaction ID
+          .update(transactionData);
 
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Transaction added')));
+          .showSnackBar(const SnackBar(content: Text('Transaction updated')));
 
-      _amountController.clear();
-      _noteController.clear();
-      setState(() {
-        _selectedDate = DateTime.now();
-        _selectedCategory = _categories[0];
-        _selectedAccount = 'Cash';
-        _selectedAccount2 = 'Cash';
-      });
+      Navigator.pop(context); // ✅ Close screen after updating
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving transaction: $e')));
+          SnackBar(content: Text('Error updating transaction: $e')));
     }
   }
 
@@ -191,6 +196,15 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
               },
               decoration: const InputDecoration(labelText: 'Category'),
             ),
+
+            // If Others is chosen
+            if (_selectedCategory == "Other") ...[
+              TextField(
+                controller: _otherController,
+                decoration:
+                    const InputDecoration(labelText: 'Enter Category Here...'),
+              ),
+            ]
           ] else ...[
             // From Dropdown
             DropdownButtonFormField(
@@ -247,14 +261,19 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
   }
 }
 
-class AddScreen extends StatefulWidget {
-  const AddScreen({super.key});
+class EditScreen extends StatefulWidget {
+  final QueryDocumentSnapshot currentTransaction;
+
+  const EditScreen({
+    super.key,
+    required this.currentTransaction,
+  });
 
   @override
-  State<AddScreen> createState() => _AddScreenState();
+  State<EditScreen> createState() => _EditScreenState();
 }
 
-class _AddScreenState extends State<AddScreen> {
+class _EditScreenState extends State<EditScreen> {
   final Color _selectedColor = const Color.fromARGB(255, 36, 89, 185);
 
   @override
@@ -264,21 +283,21 @@ class _AddScreenState extends State<AddScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text(
-            "Add Transaction",
+            "Edit Transaction",
             style: TextStyle(fontSize: 17),
           ),
           backgroundColor: _selectedColor,
           leading: IconButton(
             onPressed: () {
-              Navigator.pop(context); // ✅ Allow back navigation
+              Navigator.pop(context);
             },
             icon: const Icon(Icons.arrow_back),
           ),
         ),
-        body: const Column(
+        body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TabBar(
+            const TabBar(
               tabs: [
                 Tab(text: "Income"),
                 Tab(text: "Expense"),
@@ -287,11 +306,11 @@ class _AddScreenState extends State<AddScreen> {
             ),
             Expanded(
               child: TabBarView(
-                physics: NeverScrollableScrollPhysics(),
+                physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  IncomeScreen(),
-                  ExpenseScreen(),
-                  TransferScreen(),
+                  IncomeScreen(transaction: widget.currentTransaction),
+                  ExpenseScreen(transaction: widget.currentTransaction),
+                  TransferScreen(transaction: widget.currentTransaction),
                 ],
               ),
             ),
@@ -303,36 +322,40 @@ class _AddScreenState extends State<AddScreen> {
 }
 
 class IncomeScreen extends StatelessWidget {
-  const IncomeScreen({super.key});
+  final QueryDocumentSnapshot transaction;
+
+  const IncomeScreen({super.key, required this.transaction});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: TransactionInputWidget(type: "income"),
+    return EditTransactions(
+      type: "income",
+      currentTransaction: transaction,
     );
   }
 }
 
 class ExpenseScreen extends StatelessWidget {
-  const ExpenseScreen({super.key});
+  final QueryDocumentSnapshot transaction;
+
+  const ExpenseScreen({super.key, required this.transaction});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: TransactionInputWidget(
-          type: "expense"), // ExpenseScreen now properly passes type
-    );
+    return EditTransactions(type: "income", currentTransaction: transaction);
   }
 }
 
 class TransferScreen extends StatelessWidget {
-  const TransferScreen({super.key});
+  final QueryDocumentSnapshot transaction;
+
+  const TransferScreen({super.key, required this.transaction});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: TransactionInputWidget(
-          type: "transfer"), // ExpenseScreen now properly passes type
+    return EditTransactions(
+      type: "transfer",
+      currentTransaction: transaction,
     );
   }
 }

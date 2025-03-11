@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'edit_transactions.dart';
 
 class Event {
   final String title;
@@ -10,9 +11,8 @@ class Event {
 }
 
 // Store all transactions in memory
-final Map<String, List<Event>> allEvents = {}; // ✅ Stores all transactions
-final Map<String, List<Event>> displayedEvents =
-    {}; // ✅ Stores current month’s transactions
+final Map<String, List<Event>> allEvents = {};
+final Map<String, List<Event>> displayedEvents = {};
 
 class TableBasicsExample extends StatefulWidget {
   final DateTime selectedDate;
@@ -37,7 +37,7 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
     _selectedDay = _selectedDate;
     _selectedEvents = ValueNotifier([]);
 
-    _listenForTransactions(); // ✅ Start listening for new transactions
+    _listenForTransactions();
   }
 
   @override
@@ -47,13 +47,11 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
       setState(() {
         _selectedDate = widget.selectedDate;
         _selectedDay = _selectedDate;
-        _filterTransactionsByMonth(
-            _selectedDate); // ✅ Update only filtered data
+        _filterTransactionsByMonth(_selectedDate);
       });
     }
   }
 
-  // ✅ Listen for Firestore updates in real-time
   void _listenForTransactions() {
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -90,13 +88,11 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
       setState(() {
         allEvents.clear();
         allEvents.addAll(updatedEvents);
-        _filterTransactionsByMonth(
-            _selectedDate); // ✅ Ensures the calendar updates in real-time
+        _filterTransactionsByMonth(_selectedDate);
       });
     });
   }
 
-  // ✅ Filter transactions for the selected month
   void _filterTransactionsByMonth(DateTime date) {
     String selectedMonth = DateFormat('yyyy-MM').format(date);
 
@@ -110,13 +106,11 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
 
     setState(() {
       displayedEvents.clear();
-      displayedEvents.addAll(filteredEvents); // ✅ Ensures correct filtering
-      _selectedEvents.value =
-          _getEventsForDay(_selectedDate); // ✅ Updates bottom event list
+      displayedEvents.addAll(filteredEvents);
+      _selectedEvents.value = _getEventsForDay(_selectedDate);
     });
   }
 
-  // ✅ Get events for the selected day (Uses `displayedEvents` instead of `allEvents`)
   List<Event> _getEventsForDay(DateTime day) {
     String dateKey = DateFormat('yyyy-MM-dd').format(day);
     return displayedEvents[dateKey] ?? [];
@@ -186,8 +180,7 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
               onPageChanged: (focusedDay) {
                 setState(() {
                   _selectedDate = focusedDay;
-                  _filterTransactionsByMonth(
-                      _selectedDate); // ✅ Instant filtering
+                  _filterTransactionsByMonth(_selectedDate);
                 });
               },
             ),
@@ -211,7 +204,66 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ListTile(
-                              onTap: () => print("Event tapped"),
+                              onTap: () async {
+                                // ✅ Ensure user is logged in
+                                User? user = FirebaseAuth.instance.currentUser;
+                                if (user == null) return;
+
+                                String userId = user.uid;
+                                String selectedDate = DateFormat('yyyy-MM-dd')
+                                    .format(_selectedDay!);
+
+                                // ✅ Extract amount from event title
+                                String title = value[index].title;
+                                RegExp amountRegex = RegExp(r'RM([\d.]+)');
+                                Match? match = amountRegex.firstMatch(title);
+
+                                if (match == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Invalid transaction format!')),
+                                  );
+                                  return;
+                                }
+
+                                double eventAmount = double.parse(
+                                    match.group(1)!); // Extract RM amount
+
+                                // ✅ Query Firestore for the exact transaction
+                                QuerySnapshot snapshot = await FirebaseFirestore
+                                    .instance
+                                    .collection('users')
+                                    .doc(userId)
+                                    .collection('transactions')
+                                    .where('dateTime', isEqualTo: selectedDate)
+                                    .get();
+
+                                // ✅ Find transaction with the correct amount
+                                var matchingDocs = snapshot.docs.where((doc) {
+                                  double dbAmount =
+                                      (doc['amount'] as num).toDouble();
+                                  return dbAmount == eventAmount;
+                                }).toList();
+
+                                if (matchingDocs.isNotEmpty) {
+                                  // ✅ Navigate to EditScreen with the first matching transaction
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditScreen(
+                                        currentTransaction: matchingDocs.first,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Transaction not found!')),
+                                  );
+                                }
+                              },
                               title: Text(value[index].title),
                             ),
                           );

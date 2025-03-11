@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'edit_transactions.dart';
 
 class DailyTransactions extends StatelessWidget {
   final DateTime selectedDate;
@@ -10,7 +11,7 @@ class DailyTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Get the current logged-in user
+
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return const Center(child: Text("User not signed in"));
@@ -47,6 +48,15 @@ class DailyTransactions extends StatelessWidget {
             String dateString = transaction['dateTime'] as String;
 
             return ListTile(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => EditScreen(
+                            currentTransaction: transaction,
+                          )),
+                );
+              },
               title: Text("RM ${transaction['amount']}"),
               subtitle:
                   Text("$dateString | ${transaction['note'] ?? 'No note'}"),
