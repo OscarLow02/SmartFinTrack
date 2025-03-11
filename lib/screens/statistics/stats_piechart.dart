@@ -6,7 +6,9 @@ class StatsPieChart extends StatelessWidget {
   final List<String> categories;
   final List<double> amounts;
   final List<int> percentages;
-  final Color defaultColor; // Default color before integrating with Pie Chart
+  final Color defaultColor;
+  final String selectedDate; // 🆕 Selected Date
+  final String selectedPeriod; // 🆕 Selected Period
 
   const StatsPieChart({
     super.key,
@@ -14,7 +16,9 @@ class StatsPieChart extends StatelessWidget {
     required this.categories,
     required this.amounts,
     required this.percentages,
-    this.defaultColor = Colors.red, // Default color (will be updated later)
+    this.defaultColor = Colors.red,
+    required this.selectedDate, // 🆕 Initialize in constructor
+    required this.selectedPeriod, // 🆕 Initialize in constructor
   });
 
   @override
@@ -46,14 +50,18 @@ class StatsPieChart extends StatelessWidget {
                       vertical: 6.0, horizontal: 5.0),
                   child: InkWell(
                     onTap: () {
-                      // Navigate and pass the selected category
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => StatsLineGraph(
-                                  categoryGroup: categories[
-                                      index], // Pass selected category
-                                )),
+                          builder: (context) => StatsLineGraph(
+                            categoryGroup:
+                                categories[index], // Existing parameter
+                            selectedDate:
+                                selectedDate, // New: Pass selected date
+                            selectedPeriod:
+                                selectedPeriod, // New: Pass period type
+                          ),
+                        ),
                       );
                     },
                     child: Container(

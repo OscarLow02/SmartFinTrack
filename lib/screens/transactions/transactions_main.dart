@@ -1,148 +1,136 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:smart_fintrack/screens/transactions/note_add.dart';
+import 'package:smart_fintrack/screens/transactions/note_screen.dart';
+import 'add_transactions.dart';
 import 'daily_transactions.dart';
+import 'package:intl/intl.dart';
+import 'transactions_calender.dart';
+import 'monthly_transactions.dart';
 
-// Variables to store document details
-String account = "";
-String amount = "";
-String category = "";
-Timestamp dateTime = Timestamp.now();
-String date = "";
-String note = "";
-String type = "";
+class TransactionsPage extends StatefulWidget {
+  const TransactionsPage({super.key});
 
-// For transfer transactions
-String from = "";
-String to = "";
-
-List<List<String>> allTransactions = [];
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-
-  fetchTransactions();
-  runApp(MyApp());
+  @override
+  _TransactionsPageState createState() => _TransactionsPageState();
 }
 
-void fetchTransactions() async {
-  // Reference to Firestore collection
-  CollectionReference transactions =
-      FirebaseFirestore.instance.collection("transactions");
-
-  // Get all documents
-  QuerySnapshot querySnapshot = await transactions.get();
-
-  // Loop through each document
-  for (var doc in querySnapshot.docs) {
-    amount = doc["amount"].toString();
-    dateTime = doc["dateTime"];
-    note = doc["note"];
-    type = doc["type"];
-
-    if (doc["type"] != "transfer") {
-      category = doc["category"];
-    } else {
-      from = doc["from"];
-      to = doc["to"];
-    }
-    // Convert Timestamp to DateTime
-    String date = dateTime.toDate().toString();
-
-    // Create a list for the current document
-
-    List<String> transactionData;
-
-    if (doc["type"] != "transfer") {
-      transactionData = [amount, category, date, note, type];
-    } else {
-      transactionData = [amount, from, to, date, note, type];
-    }
-
-    // Add this document's data to the main list
-    allTransactions.add(transactionData);
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class _TransactionsPageState extends State<TransactionsPage>
+    with SingleTickerProviderStateMixin {
   final Color _selectedColor = const Color.fromARGB(255, 36, 89, 185);
+  DateTime _selectedDate = DateTime.now();
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  // ✅ Change month normally, but change year when on Monthly tab
+  void _changeDate(int delta) {
+    setState(() {
+      if (_tabController.index == 2) {
+        // Change YEAR in Monthly tab
+        _selectedDate = DateTime(_selectedDate.year + delta, 1, 1);
+      } else {
+        // Change MONTH in other tabs
+        _selectedDate =
+            DateTime(_selectedDate.year, _selectedDate.month + delta, 1);
+      }
+    });
+  }
+
+  // ✅ Updates UI when switching tabs
+  void _onTabChanged() {
+    setState(() {}); // Forces rebuild to reflect year/month change
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DefaultTabController(
-        length: 4,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text("Transactions"),
-            centerTitle: true,
-            backgroundColor: _selectedColor,
-            leading: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.search),
-            ),
-          ),
-          body: Column(
-            mainAxisSize: MainAxisSize
-                .min, // Prevents Column from taking unnecessary space
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_back_ios_new_outlined),
-                  ),
-                  Text("Mar 2023"),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.arrow_forward_ios_outlined),
-                  ),
-                ],
-              ),
-              TabBar(
-                tabs: [
-                  Tab(text: "Daily"),
-                  Tab(text: "Calender"),
-                  Tab(text: "Monthly"),
-                  Tab(text: "Desc."),
-                ],
-              ),
-              Expanded(
-                child: TabBarView(
-                  physics: NeverScrollableScrollPhysics(),
-                  children: [
-                    dailyTransactions(),
-                    Icon(Icons.directions_transit),
-                    Icon(Icons.directions_bike),
-                    Icon(Icons.directions_bike),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.cyan,
-            child: Icon(Icons.add),
+    String formattedDate = _tabController.index == 2
+        ? DateFormat('yyyy')
+            .format(_selectedDate) // Show only year in Monthly tab
+        : DateFormat('MMM yyyy')
+            .format(_selectedDate); // Show full date in others
+
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Transactions"),
+          centerTitle: true,
+          backgroundColor: _selectedColor,
+          leading: IconButton(
             onPressed: () {},
+            icon: const Icon(Icons.search),
           ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: 0,
-            onTap: (index) {},
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.book),
-                label: "Trans.",
+        ),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: () => _changeDate(-1),
+                  icon: const Icon(Icons.arrow_back_ios_new_outlined),
+                ),
+                Text(formattedDate), // Display current selected month or year
+                IconButton(
+                  onPressed: () => _changeDate(1),
+                  icon: const Icon(Icons.arrow_forward_ios_outlined),
+                ),
+              ],
+            ),
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(text: "Daily"),
+                Tab(text: "Calendar"),
+                Tab(text: "Monthly"),
+                Tab(text: "Desc."),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  DailyTransactions(selectedDate: _selectedDate),
+                  TableBasicsExample(selectedDate: _selectedDate),
+                  MonthlyTransactions(
+                      selectedYear: _selectedDate
+                          .year), // ✅ Now passes year instead of month
+                  NoteScreen(),
+                ],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.auto_graph_rounded),
-                label: "Stats",
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.cyan,
+          child: const Icon(Icons.add),
+          onPressed: () {
+            if (_tabController.index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NoteAdd()),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddScreen()),
+              );
+            }
+          },
         ),
       ),
     );
