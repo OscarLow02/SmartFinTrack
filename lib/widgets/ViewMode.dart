@@ -8,6 +8,8 @@ class ViewMode extends StatefulWidget {
   final bool showTabs;
   final bool showPeriodDropdown;
   final DateTime initialDate;
+  // final double totalIncome; // New parameter
+  // final double totalExpenses; // New parameter
 
   const ViewMode({
     super.key,
@@ -15,6 +17,8 @@ class ViewMode extends StatefulWidget {
     required this.onPeriodChanged,
     required this.onDateChanged,
     required this.initialDate,
+    // required this.totalIncome,
+    // required this.totalExpenses,
     this.tabController,
     this.showTabs = true,
     this.showPeriodDropdown = true,
@@ -322,7 +326,11 @@ class _ViewModeState extends State<ViewMode> {
         if (widget.showTabs && widget.tabController != null)
           TabBar(
             controller: widget.tabController,
-            tabs: const [Tab(text: "Income"), Tab(text: "Expenses")],
+            tabs: const [Tab(text: "Income"), Tab(text: "Expense")],
+            // tabs: [
+            //   Tab(text: "Income RM ${widget.totalIncome.toStringAsFixed(2)}"),
+            //   Tab(text: "Expenses RM ${widget.totalExpenses.toStringAsFixed(2)}"),
+            // ],
             indicatorSize: TabBarIndicatorSize.tab,
           ),
       ],
