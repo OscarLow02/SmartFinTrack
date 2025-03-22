@@ -67,6 +67,7 @@ class DefaultFirebaseOptions {
     projectId: 'test-eb0a8',
     databaseURL: 'https://test-eb0a8-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'test-eb0a8.firebasestorage.app',
+    androidClientId: '997829664351-7fq7j88i1dep06f32l4e660o9idkpinu.apps.googleusercontent.com',
     iosClientId: '997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartFintrack',
   );
@@ -78,6 +79,7 @@ class DefaultFirebaseOptions {
     projectId: 'test-eb0a8',
     databaseURL: 'https://test-eb0a8-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'test-eb0a8.firebasestorage.app',
+    androidClientId: '997829664351-7fq7j88i1dep06f32l4e660o9idkpinu.apps.googleusercontent.com',
     iosClientId: '997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartFintrack',
   );
@@ -92,4 +94,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'test-eb0a8.firebasestorage.app',
     measurementId: 'G-M907QGL8L3',
   );
+
 }

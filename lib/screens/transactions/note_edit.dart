@@ -88,7 +88,11 @@ class _NoteEditState extends State<NoteEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit Note"),
+        backgroundColor: const Color.fromARGB(255, 36, 89, 185),
+        title: const Text(
+          "Edit Note",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         actions: [
           // ✅ Delete Button in AppBar
           IconButton(

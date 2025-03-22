@@ -46,7 +46,11 @@ class _NoteAddState extends State<NoteAdd> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Note"),
+        backgroundColor: const Color.fromARGB(255, 36, 89, 185),
+        title: const Text(
+          "Note",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Container(
         padding: const EdgeInsets.all(10),

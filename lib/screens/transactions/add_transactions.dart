@@ -1,14 +1,18 @@
+import 'dart:io';
+
+import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'camera.dart';
 
 // Add camera function
 
 class TransactionInputWidget extends StatefulWidget {
   final String type;
 
-  const TransactionInputWidget({super.key, this.type = "income"});
+  const TransactionInputWidget({super.key, this.type = "Income"});
 
   @override
   _TransactionInputWidgetState createState() => _TransactionInputWidgetState();
@@ -17,15 +21,17 @@ class TransactionInputWidget extends StatefulWidget {
 class _TransactionInputWidgetState extends State<TransactionInputWidget> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-  final TextEditingController _otherController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
+  String? _imagePath;
 
   late String _selectedCategory;
-  String _selectedAccount = 'Cash';
+  String _selectedFrom = 'Cash';
 
   // For transfer transaction
-  String _selectedAccount2 = 'Cash';
+  String _selectedTo = 'Cash';
+
+  String _selectedAccount = 'Cash';
 
   final List<String> _incomeCategories = [
     'Allowance',
@@ -53,13 +59,13 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
   final List<String> _accounts = ['Cash', 'Account', 'Credit Card'];
 
   List<String> get _categories =>
-      widget.type == "income" ? _incomeCategories : _expenseCategories;
+      widget.type == "Income" ? _incomeCategories : _expenseCategories;
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.type == "income") {
+    if (widget.type == "Income") {
       _selectedCategory =
           _incomeCategories[0]; // Default to first income category
     } else {
@@ -113,13 +119,16 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
         'type': widget.type,
       };
 
-      if (widget.type == "transfer") {
-        transactionData['from'] = _selectedAccount;
-        transactionData['to'] = _selectedAccount2;
-      } else if (_selectedCategory == "Other") {
-        transactionData['category'] = _otherController.text;
+      if (_imagePath != null) {
+        transactionData['imagePath'] = _imagePath; // Save the image path
+      }
+
+      if (widget.type == "Transfer") {
+        transactionData['from'] = _selectedFrom;
+        transactionData['to'] = _selectedTo;
       } else {
         transactionData['category'] = _selectedCategory;
+        transactionData['account'] = _selectedAccount;
       }
 
       // ✅ Save inside the user's document: "users/{uid}/transactions"
@@ -137,8 +146,8 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
       setState(() {
         _selectedDate = DateTime.now();
         _selectedCategory = _categories[0];
-        _selectedAccount = 'Cash';
-        _selectedAccount2 = 'Cash';
+        _selectedFrom = 'Cash';
+        _selectedTo = 'Cash';
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -148,100 +157,141 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Date Picker
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Date: ${_selectedDate.toString().split(' ')[0]}',
-                  style: const TextStyle(fontSize: 18)),
-              Container(
-                margin: const EdgeInsets.all(5),
-                width: 150,
-                height: 25,
-                child: ElevatedButton(
-                    onPressed: _pickDate, child: const Text('Pick Date')),
-              )
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date Picker
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Date: ${_selectedDate.toString().split(' ')[0]}',
+                    style: const TextStyle(fontSize: 18)),
+                Container(
+                  margin: const EdgeInsets.all(5),
+                  width: 150,
+                  height: 25,
+                  child: ElevatedButton(
+                      onPressed: _pickDate, child: const Text('Pick Date')),
+                )
+              ],
+            ),
+
+            // Amount Input
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Amount'),
+            ),
+
+// Show Category and Account for Income & Expense
+            if (widget.type != "Transfer") ...[
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                value: _selectedCategory,
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                      value: category, child: Text(category));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'Category'),
+              ),
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(bottom: 10),
+                value: _selectedAccount,
+                items: _accounts.map((account) {
+                  return DropdownMenuItem(value: account, child: Text(account));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedAccount = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'Account'),
+              ),
+            ]
+
+            // Show From and To for Transfer Transactions
+            else ...[
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                value: _selectedFrom,
+                items: _accounts.map((from) {
+                  return DropdownMenuItem(value: from, child: Text(from));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedFrom = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'From'),
+              ),
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(bottom: 10),
+                value: _selectedTo,
+                items: _accounts.map((to) {
+                  return DropdownMenuItem(value: to, child: Text(to));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedTo = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'To'),
+              ),
             ],
-          ),
 
-          // Amount Input
-          TextField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Amount'),
-          ),
-
-          if (widget.type != "transfer") ...[
-            // Category Dropdown
-            DropdownButtonFormField(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              value: _selectedCategory,
-              items: _categories.map((category) {
-                return DropdownMenuItem(value: category, child: Text(category));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCategory = value as String;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Category'),
-            ),
-          ] else ...[
-            // From Dropdown
-            DropdownButtonFormField(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              value: _selectedAccount,
-              items: _accounts.map((account) {
-                return DropdownMenuItem(value: account, child: Text(account));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedAccount = value as String;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'From'),
+            // Note Input
+            TextField(
+              controller: _noteController,
+              decoration: const InputDecoration(labelText: 'Note'),
             ),
 
-            // To Dropdown
-            DropdownButtonFormField(
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              value: _selectedAccount2,
-              items: _accounts.map((account) {
-                return DropdownMenuItem(value: account, child: Text(account));
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedAccount2 = value as String;
-                });
+            // Camera Button
+            IconButton(
+              onPressed: () async {
+                final imagePath = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const TakePictureScreen()),
+                );
+
+                if (imagePath != null) {
+                  setState(() {
+                    _imagePath = imagePath;
+                  });
+                }
               },
-              decoration: const InputDecoration(labelText: 'To'),
+              icon: const Icon(Icons.camera_alt),
+            ),
+
+            // Image Preview
+            if (_imagePath != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: Image.file(File(_imagePath!), height: 100),
+              ),
+
+            const SizedBox(height: 20),
+
+            // Submit Button
+            Container(
+              margin: const EdgeInsets.only(top: 5),
+              height: 40,
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _submitData,
+                child: const Text('Save'),
+              ),
             ),
           ],
-
-          // Note Input
-          TextField(
-            controller: _noteController,
-            decoration: const InputDecoration(labelText: 'Note'),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Submit Button
-          Container(
-            margin: const EdgeInsets.only(top: 5),
-            height: 40,
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _submitData,
-              child: const Text('Save'),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -265,7 +315,8 @@ class _AddScreenState extends State<AddScreen> {
         appBar: AppBar(
           title: const Text(
             "Add Transaction",
-            style: TextStyle(fontSize: 17),
+            style: TextStyle(
+                fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           backgroundColor: _selectedColor,
           leading: IconButton(
@@ -308,7 +359,7 @@ class IncomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: TransactionInputWidget(type: "income"),
+      body: TransactionInputWidget(type: "Income"),
     );
   }
 }
@@ -320,7 +371,7 @@ class ExpenseScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: TransactionInputWidget(
-          type: "expense"), // ExpenseScreen now properly passes type
+          type: "Expense"), // ExpenseScreen now properly passes type
     );
   }
 }
@@ -332,7 +383,7 @@ class TransferScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: TransactionInputWidget(
-          type: "transfer"), // ExpenseScreen now properly passes type
+          type: "Transfer"), // ExpenseScreen now properly passes type
     );
   }
 }
