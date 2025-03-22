@@ -1,14 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Add camera function
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(AddScreen());
-}
 
 class TransactionInputWidget extends StatefulWidget {
   final String type;
@@ -99,18 +94,22 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
     }
 
     try {
-      // Combine date and time into a DateTime object
-      DateTime fullDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-      );
+      String dateString = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
-      // Prepare transaction data
+      // ✅ Get the current user's UID
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('User not signed in')));
+        return;
+      }
+      String userId = user.uid; // Get UID of logged-in user
+
+      // ✅ Prepare transaction data
       Map<String, dynamic> transactionData = {
         'amount': amount,
         'note': _noteController.text,
-        'dateTime': fullDateTime,
+        'dateTime': dateString,
         'type': widget.type,
       };
 
@@ -123,7 +122,10 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
         transactionData['category'] = _selectedCategory;
       }
 
+      // ✅ Save inside the user's document: "users/{uid}/transactions"
       await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
           .collection('transactions')
           .add(transactionData);
 
@@ -134,13 +136,9 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
       _noteController.clear();
       setState(() {
         _selectedDate = DateTime.now();
-        if (widget.type == "transfer") {
-          _selectedAccount = 'Cash';
-          _selectedAccount2 = 'Cash';
-        } else {
-          _selectedCategory = _categories[0];
-          _selectedAccount = 'Cash';
-        }
+        _selectedCategory = _categories[0];
+        _selectedAccount = 'Cash';
+        _selectedAccount2 = 'Cash';
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,9 +158,9 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Date: ${_selectedDate.toString().split(' ')[0]}',
-                  style: TextStyle(fontSize: 18)),
+                  style: const TextStyle(fontSize: 18)),
               Container(
-                margin: EdgeInsets.all(5),
+                margin: const EdgeInsets.all(5),
                 width: 150,
                 height: 25,
                 child: ElevatedButton(
@@ -181,7 +179,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
           if (widget.type != "transfer") ...[
             // Category Dropdown
             DropdownButtonFormField(
-              padding: EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
               value: _selectedCategory,
               items: _categories.map((category) {
                 return DropdownMenuItem(value: category, child: Text(category));
@@ -193,19 +191,10 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
               },
               decoration: const InputDecoration(labelText: 'Category'),
             ),
-
-            // If Others is chosen
-            if (_selectedCategory == "Other") ...[
-              TextField(
-                controller: _otherController,
-                decoration:
-                    const InputDecoration(labelText: 'Enter Category Here...'),
-              ),
-            ]
           ] else ...[
             // From Dropdown
             DropdownButtonFormField(
-              padding: EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
               value: _selectedAccount,
               items: _accounts.map((account) {
                 return DropdownMenuItem(value: account, child: Text(account));
@@ -220,7 +209,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
 
             // To Dropdown
             DropdownButtonFormField(
-              padding: EdgeInsets.only(top: 10, bottom: 10),
+              padding: const EdgeInsets.only(top: 10, bottom: 10),
               value: _selectedAccount2,
               items: _accounts.map((account) {
                 return DropdownMenuItem(value: account, child: Text(account));
@@ -244,7 +233,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
 
           // Submit Button
           Container(
-            margin: EdgeInsets.only(top: 5),
+            margin: const EdgeInsets.only(top: 5),
             height: 40,
             width: double.infinity,
             child: ElevatedButton(
@@ -270,43 +259,43 @@ class _AddScreenState extends State<AddScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              "Add Transaction",
-              style: TextStyle(fontSize: 17),
-            ),
-            backgroundColor: _selectedColor,
-            leading: IconButton(
-              onPressed: () {},
-              icon: Icon(Icons.arrow_back),
-            ),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Add Transaction",
+            style: TextStyle(fontSize: 17),
           ),
-          body: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TabBar(
-                tabs: [
-                  Tab(text: "Income"),
-                  Tab(text: "Expense"),
-                  Tab(text: "Transfer"),
+          backgroundColor: _selectedColor,
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context); // ✅ Allow back navigation
+            },
+            icon: const Icon(Icons.arrow_back),
+          ),
+        ),
+        body: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TabBar(
+              tabs: [
+                Tab(text: "Income"),
+                Tab(text: "Expense"),
+                Tab(text: "Transfer"),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  IncomeScreen(),
+                  ExpenseScreen(),
+                  TransferScreen(),
                 ],
               ),
-              Expanded(
-                child: TabBarView(
-                  physics: NeverScrollableScrollPhysics(),
-                  children: [
-                    IncomeScreen(),
-                    ExpenseScreen(),
-                    TransferScreen(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -318,7 +307,7 @@ class IncomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: TransactionInputWidget(type: "income"),
     );
   }
@@ -329,7 +318,7 @@ class ExpenseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: TransactionInputWidget(
           type: "expense"), // ExpenseScreen now properly passes type
     );
@@ -341,7 +330,7 @@ class TransferScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: TransactionInputWidget(
           type: "transfer"), // ExpenseScreen now properly passes type
     );
