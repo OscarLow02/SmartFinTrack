@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_fintrack/firebase_options.dart';
-import 'package:smart_fintrack/screens/admin/bottom_bar.dart';
 import 'package:smart_fintrack/screens/admin/systemmonitor/monitorfunction.dart';
 import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
