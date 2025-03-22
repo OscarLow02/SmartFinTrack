@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:smart_fintrack/screens/transactions/note_add.dart';
 import 'package:smart_fintrack/screens/transactions/note_screen.dart';
+import 'package:smart_fintrack/screens/transactions/search_transactions.dart';
 import 'add_transactions.dart';
 import 'daily_transactions.dart';
 import 'package:intl/intl.dart';
 import 'transactions_calender.dart';
 import 'monthly_transactions.dart';
+import 'filter_transactions.dart';
+import 'shared_goals.dart';
 
 class TransactionsPage extends StatefulWidget {
   const TransactionsPage({super.key});
@@ -23,7 +26,7 @@ class _TransactionsPageState extends State<TransactionsPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(_onTabChanged);
   }
 
@@ -62,16 +65,37 @@ class _TransactionsPageState extends State<TransactionsPage>
             .format(_selectedDate); // Show full date in others
 
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Transactions"),
+          title: const Text(
+            "Transactions",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
           centerTitle: true,
           backgroundColor: _selectedColor,
           leading: IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SearchScreen()));
+            },
             icon: const Icon(Icons.search),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.filter_list_alt, color: Colors.black),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FilterTransactionsScreen(),
+                  ),
+                );
+              }, // ✅ Call the delete function
+            ),
+          ],
         ),
         body: Column(
           mainAxisSize: MainAxisSize.min,
@@ -83,7 +107,13 @@ class _TransactionsPageState extends State<TransactionsPage>
                   onPressed: () => _changeDate(-1),
                   icon: const Icon(Icons.arrow_back_ios_new_outlined),
                 ),
-                Text(formattedDate), // Display current selected month or year
+                Text(
+                  formattedDate,
+                  style: TextStyle(
+                      color: const Color.fromARGB(215, 70, 47, 120),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ), // Display current selected month or year
                 IconButton(
                   onPressed: () => _changeDate(1),
                   icon: const Icon(Icons.arrow_forward_ios_outlined),
@@ -92,11 +122,14 @@ class _TransactionsPageState extends State<TransactionsPage>
             ),
             TabBar(
               controller: _tabController,
+              labelPadding: EdgeInsets.all(1),
+              labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               tabs: const [
                 Tab(text: "Daily"),
                 Tab(text: "Calendar"),
                 Tab(text: "Monthly"),
                 Tab(text: "Desc."),
+                Tab(text: "Shared"),
               ],
             ),
             Expanded(
@@ -109,14 +142,16 @@ class _TransactionsPageState extends State<TransactionsPage>
                   MonthlyTransactions(
                       selectedYear: _selectedDate
                           .year), // ✅ Now passes year instead of month
-                  NoteScreen(),
+                  NoteScreen(selectedDate: _selectedDate),
+                  SharedGoalsScreen(),
                 ],
               ),
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.cyan,
+          foregroundColor: Colors.white,
+          backgroundColor: _selectedColor,
           child: const Icon(Icons.add),
           onPressed: () {
             if (_tabController.index == 3) {
