@@ -10,6 +10,7 @@ class ActivityLogPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Activity Log"),
+        centerTitle: true,
         backgroundColor: Colors.blue,
       ),
       body: Padding(

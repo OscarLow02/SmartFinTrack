@@ -12,7 +12,6 @@ Future<void> deleteUserData(String userId) async {
   }
 }
 
-
 Future<void> blockUser(String userId) async {
   try {
     await FirebaseFirestore.instance.collection('users').doc(userId).update({
@@ -48,4 +47,25 @@ Future<void> resetUserPassword(BuildContext context, String email) async {
     );
   }
 }
+
+Future<Map<String, dynamic>?> getCurrentUserInfo() async {
+  // Get the current user
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      // Fetch user data from Firestore
+      DocumentSnapshot userData = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      
+      if (userData.exists) {
+        return userData.data() as Map<String, dynamic>;
+      }
+    } catch (e) {
+      print("Error fetching admin info: $e");
+    }
+  }
+  return null; // Return null if user is not found or an error occurs
+}
+
+
+
 

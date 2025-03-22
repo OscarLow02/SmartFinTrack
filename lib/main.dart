@@ -1,6 +1,10 @@
+import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_fintrack/firebase_options.dart';
+import 'package:smart_fintrack/screens/admin/bottom_bar.dart';
+import 'package:smart_fintrack/screens/admin/systemmonitor/monitorfunction.dart';
 import 'package:smart_fintrack/screens/statistics/stats_main.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
@@ -12,6 +16,20 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  
+  FlutterError.onError = (errorDetails) {
+    FirebaseCrashlytics.instance.recordFlutterError(errorDetails);
+    // track the error in Firestore
+    logErrorToFirestore(errorDetails.exception, errorDetails.stack!);
+  };
+
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };  
 
   runApp(
     MultiProvider(

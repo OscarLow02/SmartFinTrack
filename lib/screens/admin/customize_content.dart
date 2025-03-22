@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_fintrack/screens/user/feedback.dart';
 
 class CustomizeAppContent extends StatelessWidget {
   const CustomizeAppContent({super.key});
@@ -9,8 +10,14 @@ class CustomizeAppContent extends StatelessWidget {
       appBar: AppBar(
         title: Center(child: Text('Customize App')),
       ),
-      body: Center(
-        child: Text('Customize App Feature'),
+      body: TextButton(
+          onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => userFeedback()),
+            );
+          }, child: Text('Feedback'),
+          
       ),
     );
   }

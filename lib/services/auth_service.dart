@@ -3,18 +3,18 @@ import 'package:smart_fintrack/screens/admin/bottom_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:smart_fintrack/screens/user/sign_in.dart';
-//import 'package:smart_fintrack/widgets/custom_snackbar.dart';
+import 'package:smart_fintrack/screens/admin/systemmonitor/monitorfunction.dart';
+import 'package:smart_fintrack/screens/user/auth_selection.dart';
+
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   // sign up function
   Future<String?> signUp(String username, String email, String password) async {
     try {
-      UserCredential userCredent = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredent = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -22,7 +22,7 @@ class AuthService {
       String uid = userCredent.user!.uid;
 
       //Store additional user data in Firestore
-      await _firestore.collection("users").doc(uid).set({
+      await firestore.collection("users").doc(uid).set({
         "userID": uid,
         "username": username,
         "email": email,
@@ -39,79 +39,30 @@ class AuthService {
     }
   }
 
-  // sign up with google
-  Future<String?> signInWithGoogle() async {
-    try {
-      // Trigger Google sign-in process
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) {
-        return "Google Sign-In was canceled.";
-      }
-
-      // Get authentication details
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Sign in with Google credential
-      UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
-      User? user = userCredential.user;
-
-      if (user != null) {
-        // Check if user exists in Firestore
-        DocumentSnapshot userDoc =
-            await _firestore.collection("users").doc(user.uid).get();
-
-        if (!userDoc.exists) {
-          // If new user, store details in Firestore
-          await _firestore.collection("users").doc(user.uid).set({
-            "userID": user.uid,
-            "username": user.displayName ?? "User${user.uid.substring(0, 5)}",
-            "email": user.email,
-            "role": "user",
-            "status": "Active",
-            "createdAt": FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
-      return null; // Success
-    } on FirebaseAuthException catch (e) {
-      return e.message;
-    } catch (e) {
-      //print("Unexpected Error: $e");
-      return "Unexpected Error: $e.";
-    }
-  }
-
   // sign in function
   Future<void> signIn(BuildContext context, email, String password) async {
     try {
-      UserCredential userCredent = await _auth.signInWithEmailAndPassword(
+      UserCredential userCredent = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       // retrieve user role
       DocumentSnapshot userDoc =
-          await _firestore.collection("users").doc(userCredent.user!.uid).get();
+          await firestore.collection("users").doc(userCredent.user!.uid).get();
 
       if (userDoc.exists) {
         String role = userDoc.get('role');
         String status = userDoc.get('status');
 
-        await recordAuthLog(userCredent.user!.uid, "Successful Login");
-
         if (role == 'user' && status == 'Active') {
+          await recordAuthLog(userCredent.user!.uid, "Successful Login");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HomePage()),
           );
-        } else if (role == 'admin') {
+        } else if (role == 'admin' && status == 'Active') {
+          await recordAuthLog(userCredent.user!.uid, "Successful Login");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => AdminBottomBar()),
@@ -164,7 +115,7 @@ class AuthService {
         ),
       );
 
-      QuerySnapshot userSnapShot = await _firestore
+      QuerySnapshot userSnapShot = await firestore
           .collection("users")
           .where("email", isEqualTo: email)
           .get();
@@ -176,7 +127,7 @@ class AuthService {
 
   // get user info
   Stream<List<Map<String, dynamic>>> getUsersInfo() {
-    return _firestore.collection("users").snapshots().map((snapshot) {
+    return firestore.collection("users").snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => doc.data()).toList();
     });
   }
@@ -184,19 +135,19 @@ class AuthService {
   // sign out function
   Future<void> signOut(BuildContext context) async {
     try{
-      User? user = _auth.currentUser;
+      User? user = auth.currentUser;
 
       if (user != null) {
         await recordAuthLog(user.uid, "Logout");
       }
 
-      await _auth.signOut();
+      await auth.signOut();
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => SignIn()),
+        MaterialPageRoute(builder: (context) => AuthSelection()),
         (route) => false,  // Remove all routes from stack
       );
-    }catch (e) {
+    }catch (e, stackTrace) {
       print("Error signing out: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -209,6 +160,8 @@ class AuthService {
           backgroundColor: Colors.red,
         ),
       );
+
+      await logErrorToFirestore(e, stackTrace);
     }
   }
 
@@ -223,8 +176,9 @@ class AuthService {
         "action": action,
         "timestamp": FieldValue.serverTimestamp(),
       });
-    }catch(e) {
+    }catch(e, stackTrace) {
       print("Error recording log: $e");
+      await logErrorToFirestore(e, stackTrace);
     }
   }
 }

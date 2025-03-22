@@ -27,183 +27,147 @@ class _SignInState extends State<SignIn> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
       ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20),
-        padding: EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              'assets/finTrack.png',
-              height: 40,
-            ),
-            SizedBox(height: 25),
-            Text(
-              'Welcome Back',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Please enter your details.',
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(height: 30),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              padding: EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    // Email TextField
-                    TextFormField(
-                      controller: _emailController,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.email),
-                        labelText: 'Email',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    // Password TextField with Show/Hide password functionality
-                    TextFormField(
-                      controller: _passwordController,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        return null;
-                      },
-                      obscureText: !_isPasswordVisible, // Toggle the password visibility
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.lock),
-                        labelText: 'Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        // Suffix icon for show/hide password
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,                     
-                            color: Colors.grey,
-                          ),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible), 
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    // Sign In Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 241, 239, 231),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            AuthService().signIn(
-                              context, 
-                              _emailController.text.trim(),
-                              _passwordController.text.trim(), 
-                            );
-                          }
-                        },
-                        child: Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 17,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    // Forgot Password Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset(
+                  'assets/finTrack.png',
+                  height: 40,
+                ),
+                SizedBox(height: 25),
+                Text(
+                  'Welcome Back',
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Please enter your details.',
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 30),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => Forgotpassword()),
-                            );
+                        // Email TextField
+                        TextFormField(
+                          controller: _emailController,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            return null;
                           },
-                          child: Text(
-                            'Forgot Password?',
-                            style: TextStyle(
-                              fontSize: 13,
-                              decoration: TextDecoration.underline,
-                              color: Colors.blue,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.email),
+                            labelText: 'Email',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
+                        SizedBox(height: 10),
+                        // Password TextField with Show/Hide password functionality
+                        TextFormField(
+                          controller: _passwordController,
+                          validator: (value) {
+                            if (value!.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            return null;
+                          },
+                          obscureText: !_isPasswordVisible, // Toggle the password visibility
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.lock),
+                            labelText: 'Password',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            // Suffix icon for show/hide password
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,                     
+                                color: Colors.grey,
+                              ),
+                              onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible), 
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        // Sign In Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color.fromARGB(255, 241, 239, 231),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                AuthService().signIn(
+                                  context, 
+                                  _emailController.text.trim(),
+                                  _passwordController.text.trim(), 
+                                );
+                              }
+                            },
+                            child: Text(
+                              'Sign In',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 17,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        // Forgot Password Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Forgotpassword()),
+                                );
+                              },
+                              child: Text(
+                                'Forgot Password?',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  decoration: TextDecoration.underline,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                '----------------- OR -----------------',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/google.png',
-                        height: 20,
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'Sign In with Google',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
-            )
-          ],
+            ),
+          ),
         ),
       ),
     );

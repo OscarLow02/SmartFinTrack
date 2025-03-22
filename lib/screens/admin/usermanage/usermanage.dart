@@ -1,4 +1,4 @@
-//import 'package:assignment_admin/screens/admin/bottom_bar.dart';
+import 'package:smart_fintrack/screens/admin/usermanage/searchuser.dart';
 import 'package:smart_fintrack/screens/admin/usermanage/userdetails.dart';
 import 'package:smart_fintrack/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -20,16 +20,19 @@ class _UserManageState extends State<UserManage> {
       appBar: AppBar(
         title: const Text('Users'),
         leading: IconButton(
-          icon: const Icon(Icons.logout),
+          icon: const Icon(Icons.search),
           onPressed: () {
-            AuthService().signOut(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => SearchUser()),
+            );
           },
         ),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list_alt),
-            onPressed: showFilterDialog,
+            onPressed: filterUser,
           ),
         ],
       ),
@@ -62,7 +65,7 @@ class _UserManageState extends State<UserManage> {
               var user = users[index];
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.blue,
                   child: Text(
                     user["username"][0].toUpperCase(),
                     style: const TextStyle(color: Colors.white),
@@ -74,7 +77,7 @@ class _UserManageState extends State<UserManage> {
                 ),
                 subtitle: Text(user["role"]),
                 onTap: () {
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => UserDetails(userData: user),
@@ -89,13 +92,13 @@ class _UserManageState extends State<UserManage> {
     );
   }
 
-  // Function to show filter options
-  void showFilterDialog() {
+  // Function to filter users
+  void filterUser() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Filter Users"),
+          title: Center(child: const Text("Filter Users")),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

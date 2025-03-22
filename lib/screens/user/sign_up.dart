@@ -35,7 +35,7 @@ class _SignUpState extends State<SignUp> {
 
     if (errorMessage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Sign Up Successful!"), backgroundColor: Colors.green,)
+        SnackBar(content: Center(child: Text("Sign Up Successful!")), backgroundColor: Colors.green,)
       );
       Navigator.pushReplacement(
         context,
@@ -57,184 +57,137 @@ class _SignUpState extends State<SignUp> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
         ),
-        body: Container(
-          margin: EdgeInsets.symmetric(horizontal: 20),
-          padding: EdgeInsets.symmetric(horizontal: 5),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                'assets/finTrack.png',
-                height: 40,
-              ),
-              SizedBox(height: 25),
-              Text(
-                'Sign Up',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Create an account to start managing your money wisely.',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 30),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                padding: EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _usernameController,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter your username';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.person),
-                          labelText: 'Username',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      TextFormField(
-                        controller: _emailController,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          return null;
-                        },
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email),
-                          labelText: 'Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      TextFormField(
-                        controller: _passwordController,
-                        validator: (value) {
-                          if (value!.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          return null;
-                        },
-                        obscureText: !_isPasswordVisible,
-                        decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock),
-                            labelText: 'Password',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
-                              ),
-                              onPressed: () => setState(() =>
-                                  _isPasswordVisible = !_isPasswordVisible),
-                            )),
-                      ),
-                      SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 241, 239, 231),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              _handleSignUp();
-                            }
-                          },
-                          child: _isLoading
-                              ? CircularProgressIndicator(color: Colors.black)
-                              : Text(
-                                  'Sign Up',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 17,
-                                  ),
-                                ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Center(
-                child: Text(
-                  '----------------- OR -----------------',
-                  style: TextStyle(
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed: () async {
-                        String? error = await AuthService().signInWithGoogle();
-                        if (error == null) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(error),
-                          ));
-                        }
-                      },
-                      child: Row(
+                  Image.asset(
+                    'assets/finTrack.png',
+                    height: 40,
+                  ),
+                  SizedBox(height: 25),
+                  Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Create an account to start managing your money wisely.',
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 30),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    padding: EdgeInsets.all(20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
                         children: [
-                          Image.asset(
-                            'assets/google.png',
-                            height: 20,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            'Sign Up with Google',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
+                          TextFormField(
+                            controller: _usernameController,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Please enter your username';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.person),
+                              labelText: 'Username',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
+                          SizedBox(height: 10),
+                          TextFormField(
+                            controller: _emailController,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.email),
+                              labelText: 'Email',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          TextFormField(
+                            controller: _passwordController,
+                            validator: (value) {
+                              if (value!.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              return null;
+                            },
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.lock),
+                                labelText: 'Password',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordVisible
+                                        ? Icons.visibility
+                                        : Icons.visibility_off,
+                                    color: Colors.grey,
+                                  ),
+                                  onPressed: () => setState(() =>
+                                      _isPasswordVisible = !_isPasswordVisible),
+                                )),
+                          ),
+                          SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color.fromARGB(255, 241, 239, 231),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  _handleSignUp();
+                                }
+                              },
+                              child: _isLoading
+                                  ? CircularProgressIndicator(color: Colors.black)
+                                  : Text(
+                                      'Sign Up',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 17,
+                                      ),
+                                    ),
+                            ),
+                          )
                         ],
-                      )),
+                      ),
+                    ),
+                  ),
                 ],
-              )
-            ],
+              ),
+            ),
           ),
         ));
   }

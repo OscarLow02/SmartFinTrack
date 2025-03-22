@@ -21,7 +21,10 @@ class UserDetails extends StatelessWidget {
             color: Colors.white,
           ),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => AdminBottomBar()),
+            );
           },
         ),
         actions: [
@@ -67,7 +70,6 @@ class UserDetails extends StatelessWidget {
           return Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.fromLTRB(5, 12, 5, 12),
-            //color: Colors.grey,
             child: Center(
               child: Column(
                 children: [
