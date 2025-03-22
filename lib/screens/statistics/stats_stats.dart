@@ -9,6 +9,7 @@ class StatsTab extends StatefulWidget {
   final Map<String, Map<String, dynamic>> incomeTransactions;
   final Map<String, Map<String, dynamic>> expenseTransactions;
   final VoidCallback onRefresh;
+
   const StatsTab({
     super.key,
     required this.incomeTransactions,
@@ -74,6 +75,11 @@ class _StatsTabState extends State<StatsTab>
     debugPrint("StatsTab - Income Percentages: $incomePercentages");
     debugPrint("StatsTab - Expense Percentages: $expensePercentages");
 
+    // 🟢 Combine all transactions into one map
+    final Map<String, Map<String, dynamic>> allTransactions = {};
+    allTransactions.addAll(widget.incomeTransactions);
+    allTransactions.addAll(widget.expenseTransactions);
+
     return Column(
       children: [
         // ViewMode for Date & Period Selection
@@ -108,6 +114,7 @@ class _StatsTabState extends State<StatsTab>
                 selectedDate: _formatDate(
                     dateProvider.selectedDate, dateProvider.selectedPeriod),
                 selectedPeriod: dateProvider.selectedPeriod,
+                allTransactions: allTransactions,
               ),
               StatsPieChart(
                 title: "Expenses",
@@ -121,6 +128,7 @@ class _StatsTabState extends State<StatsTab>
                 selectedDate: _formatDate(
                     dateProvider.selectedDate, dateProvider.selectedPeriod),
                 selectedPeriod: dateProvider.selectedPeriod,
+                allTransactions: allTransactions,
               ),
             ],
           ),

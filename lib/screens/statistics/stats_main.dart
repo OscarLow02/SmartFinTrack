@@ -48,10 +48,6 @@ class _StatsMainState extends State<StatsMain>
             period: selectedPeriod,
             type: "Expense");
 
-    // Debug prints to check fetched data
-    debugPrint("Income Transactions in STATSMAIN: $incomeData");
-    debugPrint("Expense Transactions in STATSMAIN: $expenseData");
-
     // IMPORTANT: Call setState to update the UI with the new data.
     setState(() {
       incomeTransactions = incomeData;

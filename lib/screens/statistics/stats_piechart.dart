@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:smart_fintrack/screens/statistics/stats_linegraph.dart';
+import 'package:smart_fintrack/screens/statistics/stats_transactionlist.dart';
 
 class StatsPieChart extends StatelessWidget {
   final String title; // "Income" or "Expenses"
@@ -10,6 +10,7 @@ class StatsPieChart extends StatelessWidget {
   final List<Color> segmentColors;
   final String selectedDate;
   final String selectedPeriod;
+  final Map<String, Map<String, dynamic>> allTransactions;
 
   const StatsPieChart({
     super.key,
@@ -20,6 +21,7 @@ class StatsPieChart extends StatelessWidget {
     required this.segmentColors,
     required this.selectedDate,
     required this.selectedPeriod,
+    required this.allTransactions,
   });
 
   @override
@@ -101,13 +103,11 @@ class StatsPieChart extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => StatsLineGraph(
-                            categoryGroup:
-                                categories[index], // Existing parameter
-                            selectedDate:
-                                selectedDate, // New: Pass selected date
-                            selectedPeriod:
-                                selectedPeriod, // New: Pass period type
+                          builder: (context) => StatsTransactionlist(
+                            categoryGroup: categories[index],
+                            selectedDate: selectedDate,
+                            selectedPeriod: selectedPeriod,
+                            allTransactions: allTransactions,
                           ),
                         ),
                       );
