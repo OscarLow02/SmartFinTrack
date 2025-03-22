@@ -7,9 +7,9 @@ class StatsPieChart extends StatelessWidget {
   final List<String> categories;
   final List<double> amounts;
   final List<int> percentages;
-  final List<Color> segmentColors; // 🆕 New Parameter
-  final String selectedDate; // 🆕 Selected Date
-  final String selectedPeriod; // 🆕 Selected Period
+  final List<Color> segmentColors;
+  final String selectedDate;
+  final String selectedPeriod;
 
   const StatsPieChart({
     super.key,
@@ -17,9 +17,9 @@ class StatsPieChart extends StatelessWidget {
     required this.categories,
     required this.amounts,
     required this.percentages,
-    required this.segmentColors, // 🆕 Accept dynamic colors
-    required this.selectedDate, // 🆕 Initialize in constructor
-    required this.selectedPeriod, // 🆕 Initialize in constructor
+    required this.segmentColors,
+    required this.selectedDate,
+    required this.selectedPeriod,
   });
 
   @override

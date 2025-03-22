@@ -25,19 +25,18 @@ class FirestoreService {
         .snapshots();
   }
 
-  // Fetch transactions for a specific period or type
-  Future<List<Map<String, dynamic>>> getTransactionsForStatistics({
+  Future<Map<String, Map<String, dynamic>>> getTransactionsForStatistics({
     required DateTime selectedDate,
     required String period, // "Monthly" or "Yearly"
-    required String type, // "Income" or "Expenses"
+    required String type, // "Income" or "Expense"
   }) async {
-    if (userId == null) return [];
+    if (userId == null) return {};
 
     Query query = _db
         .collection('users')
         .doc(userId)
         .collection('transactions')
-        .where('type', isEqualTo: type); // Filter by Income or Expenses
+        .where('type', isEqualTo: type); // Filter by Income or Expense
 
     if (period == "Monthly") {
       String monthStart =
@@ -58,9 +57,22 @@ class FirestoreService {
     }
 
     QuerySnapshot snapshot = await query.get();
-    return snapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
+
+    // Use the document ID as the key to preserve duplicates
+    Map<String, Map<String, dynamic>> transactionsMap = {};
+    for (var doc in snapshot.docs) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      transactionsMap[doc.id] = {
+        "account": data["account"] ?? "Unknown",
+        "amount": data["amount"] ?? 0.0,
+        "category": data["category"] ?? "Uncategorized",
+        "dateTime": data["dateTime"] ?? "",
+        "imagePath": data["imagePath"] ?? "",
+        "note": data["note"] ?? "",
+        "type": data["type"] ?? "Unknown",
+      };
+    }
+    return transactionsMap;
   }
 
   // Fetch budget data

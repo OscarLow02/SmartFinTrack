@@ -140,16 +140,6 @@ class _StatsLineGraphState extends State<StatsLineGraph> {
             showPeriodDropdown: false,
           ),
 
-          // 🟢 Line Graph Placeholder
-          Expanded(
-            flex: 2, // Allocate space for line graph
-            child: Container(
-              margin: const EdgeInsets.only(top: 10),
-              color: Colors.grey[300], // Placeholder background
-              child: const Center(child: Text("Line Graph Here")),
-            ),
-          ),
-
           // 🟢 Transaction List
           Expanded(
             flex: 3, // Allocate space for transaction list

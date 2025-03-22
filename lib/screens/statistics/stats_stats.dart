@@ -3,11 +3,18 @@ import 'package:provider/provider.dart';
 import 'stats_piechart.dart';
 import 'package:smart_fintrack/widgets/ViewMode.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
-import 'package:smart_fintrack/services/firestore_service.dart';
 import 'package:smart_fintrack/services/statistics_service.dart';
 
 class StatsTab extends StatefulWidget {
-  const StatsTab({super.key});
+  final Map<String, Map<String, dynamic>> incomeTransactions;
+  final Map<String, Map<String, dynamic>> expenseTransactions;
+  final VoidCallback onRefresh;
+  const StatsTab({
+    super.key,
+    required this.incomeTransactions,
+    required this.expenseTransactions,
+    required this.onRefresh,
+  });
 
   @override
   _StatsTabState createState() => _StatsTabState();
@@ -16,111 +23,101 @@ class StatsTab extends StatefulWidget {
 class _StatsTabState extends State<StatsTab>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final FirestoreService _firestoreService = FirestoreService();
 
-  Map<String, double> incomeData = {};
-  Map<String, double> expenseData = {};
+  Map<String, double> totalIncomeByCategory = {};
+  Map<String, double> totalExpenseByCategory = {};
   Map<String, int> incomePercentages = {};
   Map<String, int> expensePercentages = {};
-  // double totalIncome = 0.0; // Added totalIncome
-  // double totalExpenses = 0.0; // Added totalExpenses
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _fetchData(); // Fetch Firestore Data
   }
 
-  /// 🟢 Fetch Data from Firestore & Process Statistics
-  Future<void> _fetchData() async {
-    final dateProvider = Provider.of<DateProvider>(context, listen: false);
-    String selectedPeriod = dateProvider.selectedPeriod;
-    DateTime selectedDate = dateProvider.selectedDate;
-
-    // Fetch transactions for income and expenses
-    List<Map<String, dynamic>> incomeTransactions =
-        await _firestoreService.getTransactionsForStatistics(
-            selectedDate: selectedDate, period: selectedPeriod, type: "Income");
-
-    List<Map<String, dynamic>> expenseTransactions =
-        await _firestoreService.getTransactionsForStatistics(
-            selectedDate: selectedDate,
-            period: selectedPeriod,
-            type: "Expense");
-
-    // Process data
-    setState(() {
-      incomeData =
-          StatisticsService.calculateCategoryTotals(incomeTransactions);
-      expenseData =
-          StatisticsService.calculateCategoryTotals(expenseTransactions);
-      incomePercentages = StatisticsService.calculatePercentages(incomeData);
-      expensePercentages = StatisticsService.calculatePercentages(expenseData);
-
-      // totalIncome = incomeData.values.fold(0, (sum, amount) => sum + amount); // Compute total income
-      // totalExpenses = expenseData.values.fold(0, (sum, amount) => sum + amount); // Compute total expenses
-    });
+  @override
+  void didUpdateWidget(covariant StatsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    debugPrint(
+        "StatsTab updated: incomeTransactions = ${widget.incomeTransactions}");
+    debugPrint(
+        "StatsTab updated: expenseTransactions = ${widget.expenseTransactions}");
   }
 
-  /// 🟢 Format Date for Display
+  /// Format Date for Display
   String _formatDate(DateTime date, String period) {
     return period == "Monthly"
-        ? "${ViewMode.getMonthName(date.month)} ${date.year}" // "June 2023"
-        : "${date.year}"; // "2023"
+        ? "${ViewMode.getMonthName(date.month)} ${date.year}"
+        : "${date.year}";
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateProvider =
-        Provider.of<DateProvider>(context); // ✅ Access Global State
+    final dateProvider = Provider.of<DateProvider>(context);
+
+    // Process the full transaction details to get totals and percentages.
+    totalIncomeByCategory =
+        StatisticsService.calculateCategoryTotals(widget.incomeTransactions);
+    totalExpenseByCategory =
+        StatisticsService.calculateCategoryTotals(widget.expenseTransactions);
+    incomePercentages =
+        StatisticsService.calculatePercentages(widget.incomeTransactions);
+    expensePercentages =
+        StatisticsService.calculatePercentages(widget.expenseTransactions);
+
+    // Debugging output
+    debugPrint("StatsTab - Income Transactions: ${widget.incomeTransactions}");
+    debugPrint(
+        "StatsTab - Expense Transactions: ${widget.expenseTransactions}");
+    debugPrint("StatsTab - Total Income By Category: $totalIncomeByCategory");
+    debugPrint("StatsTab - Total Expense By Category: $totalExpenseByCategory");
+    debugPrint("StatsTab - Income Percentages: $incomePercentages");
+    debugPrint("StatsTab - Expense Percentages: $expensePercentages");
 
     return Column(
       children: [
-        // 🟢 ViewMode for Date & Period Selection
+        // ViewMode for Date & Period Selection
         ViewMode(
           selectedPeriod: dateProvider.selectedPeriod,
           onPeriodChanged: (newValue) {
             dateProvider.setSelectedPeriod(newValue);
-            _fetchData(); // Auto-refresh statistics when period changes
+            widget.onRefresh(); // <-- Note the added parentheses
           },
           onDateChanged: (newDate) {
             dateProvider.setSelectedDate(newDate);
-            _fetchData(); // Auto-refresh statistics when date changes
+            widget.onRefresh(); // <-- Note the added parentheses
           },
           initialDate: dateProvider.selectedDate,
           tabController: _tabController,
-          // totalIncome: totalIncome,
-          // totalExpenses: totalExpenses,
         ),
 
-        // 🟢 Tab View (Income & Expenses Pie Charts)
+        // Tab View (Income & Expenses Pie Charts)
         Expanded(
           child: TabBarView(
             controller: _tabController,
             children: [
               StatsPieChart(
                 title: "Income",
-                categories: incomeData.keys.toList(),
-                amounts: incomeData.values.toList(),
+                categories: totalIncomeByCategory.keys.toList(),
+                amounts: totalIncomeByCategory.values.toList(),
                 percentages: incomePercentages.values.toList(),
                 segmentColors: List.generate(
-                    incomeData.length,
-                    (index) => Colors.primaries[
-                        index % Colors.primaries.length]), // Dynamic Colors
+                  totalIncomeByCategory.length,
+                  (index) => Colors.primaries[index % Colors.primaries.length],
+                ),
                 selectedDate: _formatDate(
                     dateProvider.selectedDate, dateProvider.selectedPeriod),
                 selectedPeriod: dateProvider.selectedPeriod,
               ),
               StatsPieChart(
                 title: "Expenses",
-                categories: expenseData.keys.toList(),
-                amounts: expenseData.values.toList(),
+                categories: totalExpenseByCategory.keys.toList(),
+                amounts: totalExpenseByCategory.values.toList(),
                 percentages: expensePercentages.values.toList(),
                 segmentColors: List.generate(
-                    expenseData.length,
-                    (index) => Colors.primaries[
-                        index % Colors.primaries.length]), // Dynamic Colors
+                  totalExpenseByCategory.length,
+                  (index) => Colors.primaries[index % Colors.primaries.length],
+                ),
                 selectedDate: _formatDate(
                     dateProvider.selectedDate, dateProvider.selectedPeriod),
                 selectedPeriod: dateProvider.selectedPeriod,
