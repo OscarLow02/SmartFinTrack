@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_transactions.dart';
+import 'transaction_card.dart';
 
 class DailyTransactions extends StatelessWidget {
   final DateTime selectedDate;
@@ -11,7 +12,6 @@ class DailyTransactions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return const Center(child: Text("User not signed in"));
@@ -28,6 +28,7 @@ class DailyTransactions extends StatelessWidget {
           .collection('transactions')
           .where('dateTime', isGreaterThanOrEqualTo: startOfMonth)
           .where('dateTime', isLessThanOrEqualTo: endOfMonth)
+          .orderBy('dateTime', descending: true)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -47,20 +48,27 @@ class DailyTransactions extends StatelessWidget {
 
             String dateString = transaction['dateTime'] as String;
 
-            return ListTile(
+            // Extract weekday
+            DateTime date = DateTime.parse(dateString);
+            DateFormat('E').format(date);
+
+            // Extract day
+            dateString.split('-');
+
+            if (transaction['type'] == 'Transfer') {
+            } else {}
+
+            return TransactionCard(
+              transaction: transactions[index],
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => EditScreen(
-                            currentTransaction: transaction,
-                          )),
+                    builder: (context) =>
+                        EditScreen(currentTransaction: transaction),
+                  ),
                 );
               },
-              title: Text("RM ${transaction['amount']}"),
-              subtitle:
-                  Text("$dateString | ${transaction['note'] ?? 'No note'}"),
-              trailing: Text(transaction['type']),
             );
           },
         );

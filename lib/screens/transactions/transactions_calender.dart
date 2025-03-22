@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_transactions.dart';
+import 'transaction_card.dart';
 
 class Event {
   final String title;
@@ -69,17 +70,18 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
         String date = doc['dateTime'];
         double amount = (doc['amount'] as num).toDouble();
         String type = doc['type'] ?? "Other";
-        String note = doc['note'] ?? "";
+        String note =
+            doc['note'].toString().trim().isNotEmpty ? '\n${doc['note']}' : '';
 
         String eventTitle = "";
 
-        if (type == "transfer") {
+        if (type == "Transfer") {
           String from = doc['from'] ?? "Unknown";
           String to = doc['to'] ?? "Unknown";
-          eventTitle = "Transfer: RM$amount from $from to $to ($note)";
+          eventTitle = "RM$amount\n$type\n$from -> $to $note";
         } else {
           String category = doc['category'] ?? "Unknown";
-          eventTitle = "$type: $category - RM$amount ($note)";
+          eventTitle = "RM$amount\n$type\n$category$note";
         }
 
         updatedEvents.putIfAbsent(date, () => []).add(Event(eventTitle));
@@ -121,6 +123,9 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
     return Scaffold(
       body: Column(
         children: [
+          SizedBox(
+            height: 20,
+          ),
           Expanded(
             child: TableCalendar(
               firstDay: DateTime.utc(2010, 10, 16),
@@ -133,12 +138,13 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
               availableGestures: AvailableGestures.none,
               calendarStyle: CalendarStyle(
                 todayDecoration: BoxDecoration(
-                  border: Border.all(color: Colors.red, width: 2),
+                  color: Colors.lightBlue.withOpacity(
+                      0.3), // Subtle highlight instead of red border
                   borderRadius: BorderRadius.circular(8),
                 ),
                 todayTextStyle: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.black, // Keep text black for readability
                 ),
               ),
               calendarBuilders: CalendarBuilders(
@@ -150,25 +156,26 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
 
                   return Container(
                     margin: const EdgeInsets.all(4),
-                    decoration: hasEvents && !isToday
-                        ? BoxDecoration(
-                            border: Border.all(color: Colors.red, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          )
-                        : null,
+                    decoration: BoxDecoration(
+                      color: hasEvents
+                          ? Colors.lightBlue.withOpacity(0.3)
+                          : null, // Light blue background
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Center(
                       child: Text(
                         '${day.day}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                        style: TextStyle(
+                          fontWeight:
+                              hasEvents ? FontWeight.bold : FontWeight.normal,
+                          color: isToday ? Colors.red : Colors.black,
                         ),
                       ),
                     ),
                   );
                 },
                 markerBuilder: (context, date, events) {
-                  return Container(); // ✅ Removes black dots
+                  return events.isNotEmpty ? const SizedBox.shrink() : null;
                 },
               ),
               onDaySelected: (selectedDay, focusedDay) {
@@ -191,84 +198,100 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
             child: ValueListenableBuilder<List<Event>>(
               valueListenable: _selectedEvents,
               builder: (context, value, _) {
-                return value.isEmpty
-                    ? const Center(child: Text("No events"))
-                    : ListView.builder(
-                        itemCount: value.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              border: Border.all(),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListTile(
-                              onTap: () async {
-                                // ✅ Ensure user is logged in
-                                User? user = FirebaseAuth.instance.currentUser;
-                                if (user == null) return;
+                if (value.isEmpty) {
+                  return const Center(child: Text("No transactions"));
+                }
 
-                                String userId = user.uid;
-                                String selectedDate = DateFormat('yyyy-MM-dd')
-                                    .format(_selectedDay!);
+                return StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('transactions')
+                      .where('dateTime',
+                          isEqualTo:
+                              DateFormat('yyyy-MM-dd').format(_selectedDay!))
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                                // ✅ Extract amount from event title
-                                String title = value[index].title;
-                                RegExp amountRegex = RegExp(r'RM([\d.]+)');
-                                Match? match = amountRegex.firstMatch(title);
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("No transactions found"));
+                    }
 
-                                if (match == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Invalid transaction format!')),
-                                  );
-                                  return;
-                                }
+                    var transactions = snapshot.data!.docs;
 
-                                double eventAmount = double.parse(
-                                    match.group(1)!); // Extract RM amount
+                    return ListView.builder(
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) {
+                        return TransactionCard(
+                          transaction: transactions[
+                              index], // ✅ Pass Firestore document directly
+                          onTap: () async {
+                            // ✅ Ensure user is logged in
+                            User? user = FirebaseAuth.instance.currentUser;
+                            if (user == null) return;
 
-                                // ✅ Query Firestore for the exact transaction
-                                QuerySnapshot snapshot = await FirebaseFirestore
-                                    .instance
-                                    .collection('users')
-                                    .doc(userId)
-                                    .collection('transactions')
-                                    .where('dateTime', isEqualTo: selectedDate)
-                                    .get();
+                            String userId = user.uid;
+                            String selectedDate =
+                                DateFormat('yyyy-MM-dd').format(_selectedDay!);
 
-                                // ✅ Find transaction with the correct amount
-                                var matchingDocs = snapshot.docs.where((doc) {
-                                  double dbAmount =
-                                      (doc['amount'] as num).toDouble();
-                                  return dbAmount == eventAmount;
-                                }).toList();
+                            // ✅ Extract amount from event title
+                            String title = value[index].title;
+                            RegExp amountRegex = RegExp(r'RM([\d.]+)');
+                            Match? match = amountRegex.firstMatch(title);
 
-                                if (matchingDocs.isNotEmpty) {
-                                  // ✅ Navigate to EditScreen with the first matching transaction
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditScreen(
-                                        currentTransaction: matchingDocs.first,
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Transaction not found!')),
-                                  );
-                                }
-                              },
-                              title: Text(value[index].title),
-                            ),
-                          );
-                        },
-                      );
+                            if (match == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Invalid transaction format!')),
+                              );
+                              return;
+                            }
+
+                            double eventAmount = double.parse(
+                                match.group(1)!); // Extract RM amount
+
+                            // ✅ Query Firestore for the exact transaction
+                            QuerySnapshot snapshot = await FirebaseFirestore
+                                .instance
+                                .collection('users')
+                                .doc(userId)
+                                .collection('transactions')
+                                .where('dateTime', isEqualTo: selectedDate)
+                                .get();
+
+                            // ✅ Find transaction with the correct amount
+                            var matchingDocs = snapshot.docs.where((doc) {
+                              double dbAmount =
+                                  (doc['amount'] as num).toDouble();
+                              return dbAmount == eventAmount;
+                            }).toList();
+
+                            if (matchingDocs.isNotEmpty) {
+                              // ✅ Navigate to EditScreen with the first matching transaction
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditScreen(
+                                    currentTransaction: matchingDocs.first,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Transaction not found!')),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
               },
             ),
           ),

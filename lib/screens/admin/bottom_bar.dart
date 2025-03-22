@@ -1,7 +1,7 @@
-import 'package:smart_fintrack/screens/admin/customize_content.dart';
-import 'package:smart_fintrack/screens/admin/support.dart';
-import 'package:smart_fintrack/screens/admin/systemmonitor.dart';
-import 'package:smart_fintrack/screens/admin/usermanage.dart';
+import 'package:smart_fintrack/screens/admin/adminprofile.dart';
+import 'package:smart_fintrack/screens/admin/customersupport/support.dart';
+import 'package:smart_fintrack/screens/admin/systemmonitor/systemmonitor.dart';
+import 'package:smart_fintrack/screens/admin/usermanage/usermanage.dart';
 import 'package:flutter/material.dart';
 
 class AdminBottomBar extends StatefulWidget {
@@ -16,10 +16,10 @@ class _AdminDashboardState extends State<AdminBottomBar> {
 
   // Screens for each tab
   final List<Widget> _screens = [
-    const UserManage(),
+    UserManage(),
     SystemMonitor(),
-    CustomizeAppContent(),
     Support(),
+    AdminProfile(),
   ];
 
   void _onItemTapped(int index) {
@@ -39,7 +39,7 @@ class _AdminDashboardState extends State<AdminBottomBar> {
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.people, size: 30,), 
             label: "Users"
@@ -49,12 +49,12 @@ class _AdminDashboardState extends State<AdminBottomBar> {
             label: "Security"
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.contact_page), 
-            label: "Content"
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.support_agent), 
             label: "Support"
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person), 
+            label: "Profile"
           ),
         ],
       ),

@@ -56,13 +56,13 @@ class _MonthlyTransactionsState extends State<MonthlyTransactions> {
         String note = doc['note'] ?? "No note";
 
         if (!totals.containsKey(monthKey)) {
-          totals[monthKey] = {"income": 0, "expense": 0};
+          totals[monthKey] = {"Income": 0, "Expense": 0};
         }
 
-        if (type == "income") {
-          totals[monthKey]!["income"] = totals[monthKey]!["income"]! + amount;
-        } else if (type == "expense") {
-          totals[monthKey]!["expense"] = totals[monthKey]!["expense"]! + amount;
+        if (type == "Income") {
+          totals[monthKey]!["Income"] = totals[monthKey]!["Income"]! + amount;
+        } else if (type == "Expense" || type == "Transfer") {
+          totals[monthKey]!["Expense"] = totals[monthKey]!["Expense"]! + amount;
         }
 
         if (!allTransactions.containsKey(monthKey)) {
@@ -98,8 +98,8 @@ class _MonthlyTransactionsState extends State<MonthlyTransactions> {
                 String monthName = DateFormat("MMMM").format(monthDate);
                 bool isExpanded = _expandedMonth == monthKey;
 
-                double income = monthlyTotals[monthKey]?["income"] ?? 0;
-                double expense = monthlyTotals[monthKey]?["expense"] ?? 0;
+                double income = monthlyTotals[monthKey]?["Income"] ?? 0;
+                double expense = monthlyTotals[monthKey]?["Expense"] ?? 0;
 
                 return Column(
                   children: [
@@ -127,21 +127,23 @@ class _MonthlyTransactionsState extends State<MonthlyTransactions> {
                               ),
                               Expanded(
                                 child: Text(
-                                  "+ RM${income.toStringAsFixed(2)}",
+                                  "+ RM${NumberFormat('#,##0.00').format(income)}",
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.bold),
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  "- RM${expense.toStringAsFixed(2)}",
+                                  "- RM${NumberFormat('#,##0.00').format(expense)}",
                                   textAlign: TextAlign.right,
                                   style: const TextStyle(
-                                      color: Colors.red,
-                                      fontWeight: FontWeight.bold),
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
@@ -163,14 +165,14 @@ class _MonthlyTransactionsState extends State<MonthlyTransactions> {
                                           horizontal: 12, vertical: 4),
                                       child: ListTile(
                                         title: Text(
-                                            "RM${transaction['amount']} - ${transaction['type']}"),
+                                            "RM${NumberFormat('#,##0.00').format(transaction['amount'])} - ${transaction['type']}"),
                                         subtitle: Text(
-                                            "${transaction['date']} | ${transaction['note']}"),
+                                            "${transaction['date']}${transaction['note'].toString().trim().isNotEmpty ? '\n${transaction['note']}' : ''}"),
                                         trailing: Icon(
-                                          transaction['type'] == "income"
-                                              ? Icons.trending_up
-                                              : Icons.trending_down,
-                                          color: transaction['type'] == "income"
+                                          transaction['type'] == "Income"
+                                              ? Icons.arrow_upward
+                                              : Icons.arrow_downward,
+                                          color: transaction['type'] == "Income"
                                               ? Colors.green
                                               : Colors.red,
                                         ),
