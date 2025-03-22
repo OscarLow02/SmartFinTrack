@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "997829664351-7fq7j88i1dep06f32l4e660o9idkpinu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.assignment",
+            "certificate_hash": "3ed45557e897a2e7b8be08370d1e060c1cf5df0f"
+          }
+        },
+        {
           "client_id": "997829664351-paejb00s7ang65gutk7ovv4a3hgorbd9.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -32,10 +40,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -68,10 +76,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -104,10 +112,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -140,10 +148,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -176,10 +184,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -212,10 +220,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
@@ -248,10 +256,10 @@
               "client_type": 3
             },
             {
-              "client_id": "997829664351-42k3ab7moj0pq8s3pmrt46hrhb6n81ed.apps.googleusercontent.com",
+              "client_id": "997829664351-157lg5atkjmmkd77gh6erlnjbl88vjbi.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.rsvp"
+                "bundle_id": "com.example.smartFintrack"
               }
             }
           ]
