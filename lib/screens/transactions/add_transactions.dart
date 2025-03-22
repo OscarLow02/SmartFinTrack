@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -186,7 +185,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
               decoration: const InputDecoration(labelText: 'Amount'),
             ),
 
-            // Category Dropdown
+// Show Category and Account for Income & Expense
             if (widget.type != "Transfer") ...[
               DropdownButtonFormField(
                 padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -214,6 +213,36 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
                   });
                 },
                 decoration: const InputDecoration(labelText: 'Account'),
+              ),
+            ]
+
+            // Show From and To for Transfer Transactions
+            else ...[
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                value: _selectedFrom,
+                items: _accounts.map((from) {
+                  return DropdownMenuItem(value: from, child: Text(from));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedFrom = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'From'),
+              ),
+              DropdownButtonFormField(
+                padding: const EdgeInsets.only(bottom: 10),
+                value: _selectedTo,
+                items: _accounts.map((to) {
+                  return DropdownMenuItem(value: to, child: Text(to));
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedTo = value as String;
+                  });
+                },
+                decoration: const InputDecoration(labelText: 'To'),
               ),
             ],
 
