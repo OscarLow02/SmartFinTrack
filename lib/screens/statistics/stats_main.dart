@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'stats_stats.dart';
 import 'stats_budget.dart';
 import 'stats_note.dart';
+import 'package:smart_fintrack/services/firestore_service.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_fintrack/services/date_provider.dart';
 
 class StatsMain extends StatefulWidget {
   const StatsMain({super.key});
@@ -13,17 +16,47 @@ class StatsMain extends StatefulWidget {
 class _StatsMainState extends State<StatsMain>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final FirestoreService _firestoreService = FirestoreService();
+  Map<String, Map<String, dynamic>> incomeTransactions = {};
+  Map<String, Map<String, dynamic>> expenseTransactions = {};
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _fetchData(); // Fetch Firestore data on init
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    final dateProvider = Provider.of<DateProvider>(context, listen: false);
+    String selectedPeriod = dateProvider.selectedPeriod;
+    DateTime selectedDate = dateProvider.selectedDate;
+
+    // Fetch transactions for income and expenses
+    Map<String, Map<String, dynamic>> incomeData =
+        await _firestoreService.getTransactionsForStatistics(
+            selectedDate: selectedDate, period: selectedPeriod, type: "Income");
+    Map<String, Map<String, dynamic>> expenseData =
+        await _firestoreService.getTransactionsForStatistics(
+            selectedDate: selectedDate,
+            period: selectedPeriod,
+            type: "Expense");
+
+    // Debug prints to check fetched data
+    debugPrint("Income Transactions in STATSMAIN: $incomeData");
+    debugPrint("Expense Transactions in STATSMAIN: $expenseData");
+
+    // IMPORTANT: Call setState to update the UI with the new data.
+    setState(() {
+      incomeTransactions = incomeData;
+      expenseTransactions = expenseData;
+    });
   }
 
   @override
@@ -34,7 +67,7 @@ class _StatsMainState extends State<StatsMain>
     return Scaffold(
       body: Column(
         children: [
-          // 🟢 Custom Header (Title)
+          // Custom Header (Title)
           Container(
             padding: const EdgeInsets.only(top: 50, bottom: 20),
             color: selectedColor,
@@ -50,7 +83,7 @@ class _StatsMainState extends State<StatsMain>
             ),
           ),
 
-          // 🟢 TabBar (Stats, Budget, Notes)
+          // TabBar (Stats, Budget, Notes)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
@@ -76,22 +109,21 @@ class _StatsMainState extends State<StatsMain>
             ),
           ),
 
-          // 🟢 TabBarView Content
+          // TabBarView Content
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                // Stats Tab
-                StatsTab(),
-
-                // Budget Page
-                DefaultTabController(
-                  length: 2, // Number of tabs you have
+              children: [
+                StatsTab(
+                  incomeTransactions: incomeTransactions,
+                  expenseTransactions: expenseTransactions,
+                  onRefresh: _fetchData,
+                ),
+                const DefaultTabController(
+                  length: 2,
                   child: StatsBudget(),
                 ),
-
-                // Note Page
-                StatsNote(), // Notes Page
+                const StatsNote(),
               ],
             ),
           ),

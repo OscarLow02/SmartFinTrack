@@ -34,6 +34,13 @@ class _StatsBudgetState extends State<StatsBudget> {
     });
   }
 
+  /// 🟢 Format Date for Display
+  String _formatDate(DateTime date, String period) {
+    return period == "Monthly"
+        ? "${ViewMode.getMonthName(date.month)} ${date.year}" // "June 2023"
+        : "${date.year}"; // "2023"
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateProvider =
@@ -95,6 +102,9 @@ class _StatsBudgetState extends State<StatsBudget> {
                           MaterialPageRoute(
                             builder: (context) => StatsBudgetSettings(
                               selectedPeriod: dateProvider.selectedPeriod,
+                              selectedDate: _formatDate(
+                                  dateProvider.selectedDate,
+                                  dateProvider.selectedPeriod),
                             ),
                           ),
                         );
@@ -203,7 +213,7 @@ class _StatsBudgetState extends State<StatsBudget> {
       title: Text(category),
       trailing: Text(
         "RM ${amount.toStringAsFixed(2)}",
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }

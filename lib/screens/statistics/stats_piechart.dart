@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:smart_fintrack/screens/statistics/stats_linegraph.dart';
 
 class StatsPieChart extends StatelessWidget {
@@ -6,9 +7,9 @@ class StatsPieChart extends StatelessWidget {
   final List<String> categories;
   final List<double> amounts;
   final List<int> percentages;
-  final Color defaultColor;
-  final String selectedDate; // 🆕 Selected Date
-  final String selectedPeriod; // 🆕 Selected Period
+  final List<Color> segmentColors;
+  final String selectedDate;
+  final String selectedPeriod;
 
   const StatsPieChart({
     super.key,
@@ -16,26 +17,73 @@ class StatsPieChart extends StatelessWidget {
     required this.categories,
     required this.amounts,
     required this.percentages,
-    this.defaultColor = Colors.red,
-    required this.selectedDate, // 🆕 Initialize in constructor
-    required this.selectedPeriod, // 🆕 Initialize in constructor
+    required this.segmentColors,
+    required this.selectedDate,
+    required this.selectedPeriod,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Define a high-contrast color palette
+    final List<Color> contrastColors = [
+      Colors.blue,
+      Colors.red,
+      Colors.green,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.amber,
+      Colors.indigo,
+      Colors.brown,
+      Colors.pink
+    ];
+
     return Padding(
       padding: const EdgeInsets.all(15.0),
       child: Column(
         children: [
-          // 🟢 Pie Chart Placeholder
+          // 🟢 Pie Chart
           Container(
             height: 250,
             width: 250,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              shape: BoxShape.circle,
-            ),
-            child: Center(child: Text("Pie Chart ($title)")),
+            child: (categories.isEmpty ||
+                    amounts.isEmpty ||
+                    percentages.isEmpty)
+                ? Center(child: Text("No data available"))
+                : PieChart(
+                    PieChartData(
+                      sections: List.generate(categories.length, (index) {
+                        return PieChartSectionData(
+                          value: percentages[index].toDouble(),
+                          title: "${(percentages[index]).toStringAsFixed(1)}%",
+                          color: contrastColors[index %
+                              contrastColors
+                                  .length], // Use high-contrast colors
+                          radius: 80,
+                          titleStyle: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          badgeWidget: Container(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Text(
+                              // ignore: unnecessary_string_interpolations
+                              "${categories[index].length > 10 ? categories[index].substring(0, 10) + "..." : categories[index]}",
+                              style: TextStyle(
+                                color: contrastColors[
+                                    index % contrastColors.length],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          badgePositionPercentageOffset: 1.5,
+                        );
+                      }),
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 40,
+                    ),
+                  ),
           ),
 
           const SizedBox(height: 20), // Spacing
@@ -84,8 +132,8 @@ class StatsPieChart extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0, vertical: 6.0),
                             decoration: BoxDecoration(
-                              color:
-                                  defaultColor.withOpacity(0.7), // Customizable
+                              color: contrastColors[
+                                  index], // Match Pie Chart Color
                               borderRadius: BorderRadius.circular(6.0),
                             ),
                             child: Text(

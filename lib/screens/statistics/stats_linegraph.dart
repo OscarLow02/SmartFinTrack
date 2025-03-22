@@ -3,13 +3,13 @@ import 'package:smart_fintrack/data/dummy_transactions.dart';
 import 'package:smart_fintrack/widgets/ViewMode.dart';
 
 class StatsLineGraph extends StatefulWidget {
-  final String categoryGroup; // Change from List<String> to String
+  final String categoryGroup;
   final String selectedDate;
   final String selectedPeriod;
 
   const StatsLineGraph({
     super.key,
-    required this.categoryGroup, // Now a single string
+    required this.categoryGroup,
     required this.selectedDate,
     required this.selectedPeriod,
   });
@@ -138,16 +138,6 @@ class _StatsLineGraphState extends State<StatsLineGraph> {
             initialDate: _selectedDate,
             showTabs: false,
             showPeriodDropdown: false,
-          ),
-
-          // 🟢 Line Graph Placeholder
-          Expanded(
-            flex: 2, // Allocate space for line graph
-            child: Container(
-              margin: const EdgeInsets.only(top: 10),
-              color: Colors.grey[300], // Placeholder background
-              child: const Center(child: Text("Line Graph Here")),
-            ),
           ),
 
           // 🟢 Transaction List
