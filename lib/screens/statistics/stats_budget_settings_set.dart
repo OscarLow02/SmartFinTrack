@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:smart_fintrack/services/firestore_service.dart';
 
 class StatsBudgetSettingsSet extends StatefulWidget {
   final String title;
@@ -21,6 +21,7 @@ class StatsBudgetSettingsSet extends StatefulWidget {
 
 class _StatsBudgetSettingsSetState extends State<StatsBudgetSettingsSet> {
   late TextEditingController _controller;
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
@@ -30,28 +31,65 @@ class _StatsBudgetSettingsSetState extends State<StatsBudgetSettingsSet> {
   }
 
   String _getFormattedTitle() {
-    if (widget.selectedPeriod == "Monthly") {
-      DateTime date = DateTime.parse(widget.selectedDate);
-      return DateFormat('MMM yyyy').format(date); // e.g., "Apr 2025"
-    } else if (widget.selectedPeriod == "Yearly") {
-      DateTime date = DateTime.parse(widget.selectedDate);
-      return DateFormat('yyyy').format(date); // e.g., "2025"
+    // If the title indicates the default budget, return it as is.
+    if (widget.title == "Set Default Budget") {
+      return widget.title;
     }
-    return "Invalid Period"; // Default return statement
+    // Otherwise, build the title using the clicked label.
+    return "Set Budget for ${widget.title}";
   }
 
-  /// 🛠 Handles budget saving and Firebase integration (placeholder)
-  void _saveBudget() {
+  Future<void> _saveBudget() async {
     double newBudget =
         double.tryParse(_controller.text) ?? widget.initialAmount;
-    _updateBudgetInFirebase(newBudget);
-    Navigator.pop(context, newBudget);
+    try {
+      await _updateBudgetInFirebase(newBudget);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Budget saved"),
+          duration: Duration(seconds: 1),
+        ),
+      );
+      // Await the delay before popping
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      Navigator.pop(context, newBudget);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to save budget: $e"),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
-  /// 🛠 Placeholder for Firebase database update
-  void _updateBudgetInFirebase(double amount) {
-    // TODO: Implement Firebase database update
-    print("Budget updated: RM $amount");
+  /// Updates the budget in Firestore.
+  /// Here can decide how to handle default vs individual updates.
+  Future<void> _updateBudgetInFirebase(double amount) async {
+    // For example, update based on selectedPeriod and title.
+    // If the user tapped on "Default Budget", then widget.title might be "Set Default Budget".
+    // Otherwise, widget.title is a month label like "Apr 2025" or a year string.
+    if (widget.title == "Set Default Budget") {
+      // This means the user wants to set a default for all months of the current year
+      DateTime date = DateTime.parse(widget.selectedDate);
+      await _firestoreService.updateBudgetData(
+        periodType: "Monthly",
+        dateKey: date.year.toString(), // or just pass the year
+        limitValue: amount,
+        isDefaultBudget: true, // now we know it's a default
+      );
+    } else {
+      // Single month
+      await _firestoreService.updateBudgetData(
+        periodType: "Monthly",
+        dateKey: widget.title, // e.g. "Mar 2025"
+        limitValue: amount,
+        isDefaultBudget: false,
+      );
+    }
   }
 
   @override
@@ -71,7 +109,7 @@ class _StatsBudgetSettingsSetState extends State<StatsBudgetSettingsSet> {
           ),
         ),
         backgroundColor: const Color(0xFF2459B9),
-        centerTitle: true, // Aligns title to the left for readability
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),

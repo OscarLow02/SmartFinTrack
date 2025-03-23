@@ -19,6 +19,8 @@ class _StatsMainState extends State<StatsMain>
   final FirestoreService _firestoreService = FirestoreService();
   Map<String, Map<String, dynamic>> incomeTransactions = {};
   Map<String, Map<String, dynamic>> expenseTransactions = {};
+  Map<String, Map<String, dynamic>> filteredIncomeTransactions = {};
+  Map<String, Map<String, dynamic>> filteredExpenseTransactions = {};
 
   @override
   void initState() {
@@ -39,19 +41,25 @@ class _StatsMainState extends State<StatsMain>
     DateTime selectedDate = dateProvider.selectedDate;
 
     // Fetch transactions for income and expenses
-    Map<String, Map<String, dynamic>> incomeData =
-        await _firestoreService.getTransactionsForStatistics(
+    Map<String, Map<String, dynamic>> income =
+        await _firestoreService.getFilteredTransactions(type: "Income");
+    Map<String, Map<String, dynamic>> expense =
+        await _firestoreService.getFilteredTransactions(type: "Expense");
+    Map<String, Map<String, dynamic>> filteredIncome =
+        await _firestoreService.getFilteredTransactions(
             selectedDate: selectedDate, period: selectedPeriod, type: "Income");
-    Map<String, Map<String, dynamic>> expenseData =
-        await _firestoreService.getTransactionsForStatistics(
+    Map<String, Map<String, dynamic>> filteredExpense =
+        await _firestoreService.getFilteredTransactions(
             selectedDate: selectedDate,
             period: selectedPeriod,
             type: "Expense");
 
     // IMPORTANT: Call setState to update the UI with the new data.
     setState(() {
-      incomeTransactions = incomeData;
-      expenseTransactions = expenseData;
+      incomeTransactions = income;
+      expenseTransactions = expense;
+      filteredIncomeTransactions = filteredIncome;
+      filteredExpenseTransactions = filteredExpense;
     });
   }
 
@@ -111,13 +119,15 @@ class _StatsMainState extends State<StatsMain>
               controller: _tabController,
               children: [
                 StatsTab(
-                  incomeTransactions: incomeTransactions,
-                  expenseTransactions: expenseTransactions,
+                  incomeTransactions: filteredIncomeTransactions,
+                  expenseTransactions: filteredExpenseTransactions,
                   onRefresh: _fetchData,
                 ),
-                const DefaultTabController(
+                DefaultTabController(
                   length: 2,
-                  child: StatsBudget(),
+                  child: StatsBudget(
+                    expenseTransactions: expenseTransactions,
+                  ),
                 ),
                 const StatsNote(),
               ],

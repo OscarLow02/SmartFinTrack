@@ -7,28 +7,11 @@ class FirestoreService {
   // Get current user ID
   String? get userId => FirebaseAuth.instance.currentUser?.uid;
 
-  // Fetch transactions for a specific month
-  Stream<QuerySnapshot> getTransactionsForTransactions(DateTime selectedDate) {
-    if (userId == null) return const Stream.empty();
-
-    String startOfMonth =
-        "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-01";
-    String endOfMonth =
-        "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-31";
-
-    return _db
-        .collection('users')
-        .doc(userId)
-        .collection('transactions')
-        .where('dateTime', isGreaterThanOrEqualTo: startOfMonth)
-        .where('dateTime', isLessThanOrEqualTo: endOfMonth)
-        .snapshots();
-  }
-
-  Future<Map<String, Map<String, dynamic>>> getTransactionsForStatistics({
-    required DateTime selectedDate,
-    required String period, // "Monthly" or "Yearly"
+  // 🟢 Fetch transactions with filtered (selectedDate, selectedPeriod, type)
+  Future<Map<String, Map<String, dynamic>>> getFilteredTransactions({
     required String type, // "Income" or "Expense"
+    DateTime? selectedDate,
+    String? period, // "Monthly" or "Yearly"
   }) async {
     if (userId == null) return {};
 
@@ -36,61 +19,205 @@ class FirestoreService {
         .collection('users')
         .doc(userId)
         .collection('transactions')
-        .where('type', isEqualTo: type); // Filter by Income or Expense
+        .where('type', isEqualTo: type);
 
-    if (period == "Monthly") {
-      String monthStart =
-          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-01";
-      String monthEnd =
-          "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-31";
-
-      query = query
-          .where('dateTime', isGreaterThanOrEqualTo: monthStart)
-          .where('dateTime', isLessThanOrEqualTo: monthEnd);
-    } else if (period == "Yearly") {
-      String yearStart = "${selectedDate.year}-01-01";
-      String yearEnd = "${selectedDate.year}-12-31";
-
-      query = query
-          .where('dateTime', isGreaterThanOrEqualTo: yearStart)
-          .where('dateTime', isLessThanOrEqualTo: yearEnd);
+    // If both selectedDate and period are provided, add date filters
+    if (selectedDate != null && period != null) {
+      if (period == "Monthly") {
+        String monthStart =
+            "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-01";
+        String monthEnd =
+            "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-31";
+        query = query
+            .where('dateTime', isGreaterThanOrEqualTo: monthStart)
+            .where('dateTime', isLessThanOrEqualTo: monthEnd);
+      } else if (period == "Yearly") {
+        String yearStart = "${selectedDate.year}-01-01";
+        String yearEnd = "${selectedDate.year}-12-31";
+        query = query
+            .where('dateTime', isGreaterThanOrEqualTo: yearStart)
+            .where('dateTime', isLessThanOrEqualTo: yearEnd);
+      }
     }
 
     QuerySnapshot snapshot = await query.get();
 
-    // Use the document ID as the key to preserve duplicates
-    Map<String, Map<String, dynamic>> transactionsMap = {};
-    for (var doc in snapshot.docs) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      transactionsMap[doc.id] = {
-        "account": data["account"] ?? "Unknown",
-        "amount": data["amount"] ?? 0.0,
-        "category": data["category"] ?? "Uncategorized",
-        "dateTime": data["dateTime"] ?? "",
-        "imagePath": data["imagePath"] ?? "",
-        "note": data["note"] ?? "",
-        "type": data["type"] ?? "Unknown",
+    return {
+      for (var doc in snapshot.docs)
+        doc.id: Map<String, dynamic>.from(doc.data() as Map)
+    };
+  }
+
+  // 🟢 1) Fetch budget data
+  // Returns a map like:
+  // {
+  //   "monthlyLimit": {"Mar 2025": 1500, "Apr 2025": 2500},
+  //   "yearlyLimit": {"2024": 10000, "2025": 20000, "2026": 10000}
+  // }
+  Future<Map<String, Map<String, dynamic>>> fetchBudgetData() async {
+    if (userId == null) {
+      throw Exception("User not logged in");
+    }
+
+    QuerySnapshot snapshot =
+        await _db.collection('users').doc(userId).collection('budget').get();
+
+    // If no documents, return empty maps
+    if (snapshot.docs.isEmpty) {
+      return {
+        "monthlyLimit": {},
+        "yearlyLimit": {},
       };
     }
-    return transactionsMap;
+
+    // Initialize merged maps
+    Map<String, dynamic> mergedMonthly = {};
+    Map<String, dynamic> mergedYearly = {};
+
+    // Merge data from all documents
+    for (var doc in snapshot.docs) {
+      Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
+
+      // Merge monthlyLimit
+      Map<String, dynamic> monthlyData =
+          Map<String, dynamic>.from(data["monthlyLimit"] ?? {});
+      monthlyData.forEach((key, value) {
+        // You can decide to overwrite or combine in a custom way.
+        mergedMonthly[key] = value;
+      });
+
+      // Merge yearlyLimit
+      Map<String, dynamic> yearlyData =
+          Map<String, dynamic>.from(data["yearlyLimit"] ?? {});
+      yearlyData.forEach((key, value) {
+        mergedYearly[key] = value;
+      });
+    }
+
+    return {
+      "monthlyLimit": mergedMonthly,
+      "yearlyLimit": mergedYearly,
+    };
   }
 
-  // Fetch budget data
-  Future<DocumentSnapshot> getBudget(String type) {
-    if (userId == null) throw Exception("User not logged in");
+  // 🟢 2) Update or Add Budget Data
+  //
+  // This function merges the new budget limit into Firestore.
+  // Example usage:
+  //   updateBudgetData("Monthly", "Mar 2025", 1500, false);
+  //     => sets monthlyLimit["Mar 2025"] = 1500
+  //
+  //   updateBudgetData("Yearly", "2025", 20000, true);
+  //     => sets yearlyLimit["2025"] = 20000
+  //        if isDefaultBudget == true, you might apply the same limit to multiple years
+  Future<void> updateBudgetData({
+    required String periodType, // "Monthly" or "Yearly"
+    required String dateKey, // e.g. "Mar 2025" or "2025"
+    required double limitValue,
+    required bool isDefaultBudget,
+    int? actualYear, // pass in if monthly
+  }) async {
+    if (userId == null) {
+      throw Exception("User not logged in");
+    }
 
-    return _db
-        .collection('users')
-        .doc(userId)
-        .collection('budget')
-        .doc(type)
-        .get();
-  }
+    // 1) Get all docs in the 'budget' collection
+    QuerySnapshot snapshot =
+        await _db.collection('users').doc(userId).collection('budget').get();
 
-  // Fetch notes
-  Stream<QuerySnapshot> getNotes() {
-    if (userId == null) return const Stream.empty();
+    DocumentReference? docRef;
+    Map<String, dynamic> docData = {};
 
-    return _db.collection('users').doc(userId).collection('notes').snapshots();
+    if (snapshot.docs.isEmpty) {
+      // 🟢 No budget docs => create a new doc
+      docRef = _db
+          .collection('users')
+          .doc(userId)
+          .collection('budget')
+          .doc(); // auto-generated ID or use your own
+
+      // Initialize the doc with empty monthlyLimit/yearlyLimit
+      docData = {
+        "monthlyLimit": <String, dynamic>{},
+        "yearlyLimit": <String, dynamic>{},
+      };
+    } else if (snapshot.docs.length == 1) {
+      // 🟢 Exactly one doc => update it
+      DocumentSnapshot existingDoc = snapshot.docs.first;
+      docRef = existingDoc.reference;
+
+      // Convert to a Map<String, dynamic> with .from
+      docData = Map<String, dynamic>.from(existingDoc.data() as Map);
+
+      // Ensure the top-level keys exist as maps.
+      docData["monthlyLimit"] = docData["monthlyLimit"] != null
+          ? Map<String, dynamic>.from(docData["monthlyLimit"])
+          : {};
+      docData["yearlyLimit"] = docData["yearlyLimit"] != null
+          ? Map<String, dynamic>.from(docData["yearlyLimit"])
+          : {};
+    } else {
+      // 🟢 More than one doc => decide how to handle
+      // e.g., pick the first doc, or merge all docs, etc.
+      DocumentSnapshot firstDoc = snapshot.docs.first;
+      docRef = firstDoc.reference;
+
+      // If you want to merge all existing docs, you’d do something similar
+      // to your fetchBudgetData() logic. For simplicity, we’ll just update
+      // the first doc here:
+      docData = Map<String, dynamic>.from(firstDoc.data() as Map);
+      docData["monthlyLimit"] = docData["monthlyLimit"] != null
+          ? Map<String, dynamic>.from(docData["monthlyLimit"])
+          : {};
+      docData["yearlyLimit"] = docData["yearlyLimit"] != null
+          ? Map<String, dynamic>.from(docData["yearlyLimit"])
+          : {};
+    }
+
+    // 2) Modify monthlyLimit or yearlyLimit as needed
+    if (periodType == "Monthly") {
+      Map<String, dynamic> monthlyData = docData["monthlyLimit"];
+      if (isDefaultBudget) {
+        // Use the year from dateKey, which might just be "2025"
+        final int yearInt = int.tryParse(dateKey) ?? DateTime.now().year;
+        for (var m in [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec"
+        ]) {
+          monthlyData["$m $yearInt"] = limitValue;
+        }
+      } else {
+        // Single month
+        monthlyData[dateKey] = limitValue;
+      }
+      docData["monthlyLimit"] = monthlyData;
+    } else {
+      // "Yearly"
+      Map<String, dynamic> yearlyData = docData["yearlyLimit"];
+      if (isDefaultBudget) {
+        // Example: set the same limit for all years in a range
+        int centerYear = int.tryParse(dateKey) ?? DateTime.now().year;
+        for (int y = centerYear - 5; y <= centerYear + 5; y++) {
+          yearlyData[y.toString()] = limitValue;
+        }
+      } else {
+        // Single year
+        yearlyData[dateKey] = limitValue;
+      }
+      docData["yearlyLimit"] = yearlyData;
+    }
+
+    // 3) Finally, write updated data back to Firestore (using merge)
+    await docRef.set(docData, SetOptions(merge: true));
   }
 }
