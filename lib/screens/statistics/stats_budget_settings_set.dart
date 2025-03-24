@@ -66,10 +66,8 @@ class _StatsBudgetSettingsSetState extends State<StatsBudgetSettingsSet> {
     }
   }
 
-  /// Updates the budget in Firestore.
-  /// Here can decide how to handle default vs individual updates.
+  // Updates the budget in Firestore.
   Future<void> _updateBudgetInFirebase(double amount) async {
-    // For example, update based on selectedPeriod and title.
     // If the user tapped on "Default Budget", then widget.title might be "Set Default Budget".
     // Otherwise, widget.title is a month label like "Apr 2025" or a year string.
     if (widget.title == "Set Default Budget") {

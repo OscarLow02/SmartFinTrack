@@ -119,8 +119,10 @@ class _StatsMainState extends State<StatsMain>
               controller: _tabController,
               children: [
                 StatsTab(
-                  incomeTransactions: filteredIncomeTransactions,
-                  expenseTransactions: filteredExpenseTransactions,
+                  filteredIncomeTransactions: filteredIncomeTransactions,
+                  filteredExpenseTransactions: filteredExpenseTransactions,
+                  incomeTransactions: incomeTransactions,
+                  expenseTransactions: expenseTransactions,
                   onRefresh: _fetchData,
                 ),
                 DefaultTabController(
@@ -129,7 +131,10 @@ class _StatsMainState extends State<StatsMain>
                     expenseTransactions: expenseTransactions,
                   ),
                 ),
-                const StatsNote(),
+                StatsNote(
+                  incomeTransactions: incomeTransactions,
+                  expenseTransactions: expenseTransactions,
+                ),
               ],
             ),
           ),

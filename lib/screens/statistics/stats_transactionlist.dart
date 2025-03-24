@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_fintrack/widgets/ViewMode.dart';
 
 class StatsTransactionlist extends StatefulWidget {
   final String categoryGroup;
@@ -236,6 +237,24 @@ class _StatsTransactionListState extends State<StatsTransactionlist> {
       ),
       body: Column(
         children: [
+          ViewMode(
+            selectedPeriod: _selectedPeriod,
+            onPeriodChanged: (newValue) {
+              setState(() {
+                _selectedPeriod = newValue;
+                dayGroups = _groupTransactions(
+                  widget.allTransactions,
+                  widget.categoryGroup,
+                  _selectedDate,
+                  _selectedPeriod,
+                );
+              });
+            },
+            onDateChanged: _updateDate,
+            initialDate: _selectedDate,
+            showTabs: false,
+            showPeriodDropdown: false,
+          ),
           // 🟢 Transaction List
           Expanded(
             child: ListView.builder(

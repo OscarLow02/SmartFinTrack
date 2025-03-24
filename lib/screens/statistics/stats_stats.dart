@@ -6,12 +6,16 @@ import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:smart_fintrack/services/statistics_service.dart';
 
 class StatsTab extends StatefulWidget {
+  final Map<String, Map<String, dynamic>> filteredIncomeTransactions;
+  final Map<String, Map<String, dynamic>> filteredExpenseTransactions;
   final Map<String, Map<String, dynamic>> incomeTransactions;
   final Map<String, Map<String, dynamic>> expenseTransactions;
   final VoidCallback onRefresh;
 
   const StatsTab({
     super.key,
+    required this.filteredIncomeTransactions,
+    required this.filteredExpenseTransactions,
     required this.incomeTransactions,
     required this.expenseTransactions,
     required this.onRefresh,
@@ -40,9 +44,9 @@ class _StatsTabState extends State<StatsTab>
   void didUpdateWidget(covariant StatsTab oldWidget) {
     super.didUpdateWidget(oldWidget);
     debugPrint(
-        "StatsTab updated: incomeTransactions = ${widget.incomeTransactions}");
+        "StatsTab updated: incomeTransactions = ${widget.filteredIncomeTransactions}");
     debugPrint(
-        "StatsTab updated: expenseTransactions = ${widget.expenseTransactions}");
+        "StatsTab updated: expenseTransactions = ${widget.filteredExpenseTransactions}");
   }
 
   /// Format Date for Display
@@ -57,19 +61,20 @@ class _StatsTabState extends State<StatsTab>
     final dateProvider = Provider.of<DateProvider>(context);
 
     // Process the full transaction details to get totals and percentages.
-    totalIncomeByCategory =
-        StatisticsService.calculateCategoryTotals(widget.incomeTransactions);
-    totalExpenseByCategory =
-        StatisticsService.calculateCategoryTotals(widget.expenseTransactions);
-    incomePercentages =
-        StatisticsService.calculatePercentages(widget.incomeTransactions);
-    expensePercentages =
-        StatisticsService.calculatePercentages(widget.expenseTransactions);
+    totalIncomeByCategory = StatisticsService.calculateCategoryTotals(
+        widget.filteredIncomeTransactions);
+    totalExpenseByCategory = StatisticsService.calculateCategoryTotals(
+        widget.filteredExpenseTransactions);
+    incomePercentages = StatisticsService.calculatePercentages(
+        widget.filteredIncomeTransactions);
+    expensePercentages = StatisticsService.calculatePercentages(
+        widget.filteredExpenseTransactions);
 
     // Debugging output
-    debugPrint("StatsTab - Income Transactions: ${widget.incomeTransactions}");
     debugPrint(
-        "StatsTab - Expense Transactions: ${widget.expenseTransactions}");
+        "StatsTab - Income Transactions: ${widget.filteredIncomeTransactions}");
+    debugPrint(
+        "StatsTab - Expense Transactions: ${widget.filteredExpenseTransactions}");
     debugPrint("StatsTab - Total Income By Category: $totalIncomeByCategory");
     debugPrint("StatsTab - Total Expense By Category: $totalExpenseByCategory");
     debugPrint("StatsTab - Income Percentages: $incomePercentages");
