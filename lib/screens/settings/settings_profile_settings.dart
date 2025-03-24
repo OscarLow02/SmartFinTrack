@@ -52,11 +52,12 @@ class _SettingsProfileSettingsState extends State<SettingsProfileSettings> {
           .update({
         "username": _usernameController.text.trim(),
         // "profilePic": _profilePicAsset,
-        // Email usually not changed unless you handle re-auth
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile updated successfully.")),
       );
+      // Return the updated username back to the previous screen.
+      Navigator.pop(context, _usernameController.text.trim());
     } catch (e) {
       print("Error saving profile settings: $e");
       ScaffoldMessenger.of(context).showSnackBar(

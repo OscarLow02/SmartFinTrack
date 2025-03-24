@@ -18,7 +18,6 @@ class SettingsLoginSecurity extends StatefulWidget {
 }
 
 class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
-  bool _isTwoStepEnabled = false;
   bool _showPasswordPrompt = false;
   bool _showSecurityPanel = false;
 
@@ -83,20 +82,6 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
         ),
         const Divider(),
 
-        // Two-step verification
-        SwitchListTile(
-          title: const Text("Two step verification"),
-          value: _isTwoStepEnabled,
-          onChanged: (value) {
-            setState(() {
-              _isTwoStepEnabled = value;
-            });
-            // TODO: Save to Firestore or Auth logic
-            // e.g., AuthService().setTwoFactorEnabled(widget.userId, value);
-          },
-        ),
-        const Divider(),
-
         // Delete My Account
         ListTile(
           title: const Text("Delete my account"),
@@ -139,7 +124,7 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
                   _showPasswordPrompt = false;
                 });
               },
-              child: const Text("Back"),
+              child: const Text("Back", style: TextStyle(color: Colors.white)),
             ),
             const SizedBox(width: 10),
             ElevatedButton(
@@ -150,8 +135,11 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
                 // Validate the password
                 _verifyCurrentPassword(_currentPasswordController.text.trim());
               },
-              child: const Text("Continue"),
-            ),
+              child: const Text(
+                "Continue",
+                style: TextStyle(color: Colors.white),
+              ),
+            )
           ],
         ),
       ],
@@ -189,7 +177,7 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
                   _showPasswordPrompt = false;
                 });
               },
-              child: const Text("Back"),
+              child: const Text("Back", style: TextStyle(color: Colors.white)),
             ),
             const SizedBox(width: 10),
             ElevatedButton(
@@ -197,7 +185,10 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
                 backgroundColor: const Color.fromARGB(255, 36, 89, 185),
               ),
               onPressed: _saveNewPassword,
-              child: const Text("Save"),
+              child: const Text(
+                "Save",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

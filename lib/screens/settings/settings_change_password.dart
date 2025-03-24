@@ -82,8 +82,10 @@ class _SettingsChangePasswordState extends State<SettingsChangePassword> {
                     onPressed: _changePassword,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 36, 89, 185),
+                      foregroundColor: Colors.white,
                     ),
-                    child: const Text("Save"),
+                    child: const Text("Save",
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

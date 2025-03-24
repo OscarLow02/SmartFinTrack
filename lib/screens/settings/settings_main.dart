@@ -17,7 +17,6 @@ class _SettingsMainState extends State<SettingsMain> {
   String _userId = "";
   String _username = "";
   String _email = "";
-  String _profilePic = "assets/profile_default.png";
   bool _isLoading = true;
 
   @override
@@ -27,7 +26,7 @@ class _SettingsMainState extends State<SettingsMain> {
   }
 
   Future<void> _fetchUserDetails() async {
-    // Get the userId from your AuthService
+    // Get the userId from AuthService
     final String? userId = AuthService().getCurrentUserId();
     if (userId == null) {
       // Handle no user logged in
@@ -48,8 +47,6 @@ class _SettingsMainState extends State<SettingsMain> {
           _userId = userId;
           _username = data["username"] ?? "";
           _email = data["email"] ?? "";
-          // Optionally update _profilePic if you store a profile picture URL in Firestore:
-          // _profilePic = data["profilePic"] ?? "assets/profile_default.png";
           _isLoading = false;
         });
       } else {
@@ -86,121 +83,107 @@ class _SettingsMainState extends State<SettingsMain> {
           automaticallyImplyLeading: false,
         ),
         body: SingleChildScrollView(
-          child: Container(
-            child: Column(
-              children: [
-                // Profile Section
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: AssetImage(_profilePic),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _username,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _email,
-                        style:
-                            const TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Invite Friends
-                Container(
-                  margin:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-
-                // Settings List
-                Column(
+          child: Column(
+            children: [
+              // Profile Section
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
                   children: [
-                    _buildSettingsItem(
-                      icon: Icons.settings,
-                      title: "Login & Security",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SettingsLoginSecurity(
-                              userId: _userId,
-                              loginEmail: _email,
-                            ),
-                          ),
-                        );
-                      },
+                    CircleAvatar(
+                      radius: 70,
+                      backgroundImage: AssetImage('assets/user_icon.webp'),
                     ),
-                    _buildSettingsItem(
-                      icon: Icons.person,
-                      title: "Profile settings",
-                      onTap: () async {
-                        final updatedUsername = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                SettingsProfileSettings(userId: _userId),
-                          ),
-                        );
-                        if (updatedUsername != null &&
-                            updatedUsername is String) {
-                          setState(() {
-                            _username = updatedUsername;
-                          });
-                        }
-                      },
+                    const SizedBox(height: 10),
+                    Text(
+                      _username,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    _buildSettingsItem(
-                      icon: Icons.privacy_tip_outlined,
-                      title: "Privacy policy",
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SettingsPrivacyPolicy(),
-                          ),
-                        );
-                      },
+                    const SizedBox(height: 4),
+                    Text(
+                      _email,
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                    // _buildSettingsItem(
-                    //   icon: Icons.help_outline,
-                    //   title: "Help and support",
-                    //   onTap: () {
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //         builder: (_) => const SettingsHelpNSupport(),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                // Log Out
-                Container(
-                  child: _buildSettingsItem(
-                    icon: Icons.logout,
-                    title: "Log out",
-                    titleColor: Colors.red,
-                    onTap: _logout,
+              ),
+              // Settings List
+              Column(
+                children: [
+                  _buildSettingsItem(
+                    icon: Icons.settings,
+                    title: "Login & Security",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SettingsLoginSecurity(
+                            userId: _userId,
+                            loginEmail: _email,
+                          ),
+                        ),
+                      );
+                    },
                   ),
+                  _buildSettingsItem(
+                    icon: Icons.person,
+                    title: "Profile settings",
+                    onTap: () async {
+                      final updatedUsername = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              SettingsProfileSettings(userId: _userId),
+                        ),
+                      );
+                      if (updatedUsername != null &&
+                          updatedUsername is String) {
+                        setState(() {
+                          _username = updatedUsername;
+                        });
+                      }
+                    },
+                  ),
+                  _buildSettingsItem(
+                    icon: Icons.privacy_tip_outlined,
+                    title: "Privacy policy",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsPrivacyPolicy(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildSettingsItem(
+                    icon: Icons.help_outline,
+                    title: "Help and support",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsHelpNSupport(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Log Out
+              Container(
+                child: _buildSettingsItem(
+                  icon: Icons.logout,
+                  title: "Log out",
+                  titleColor: Colors.red,
+                  onTap: _logout,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ));
   }

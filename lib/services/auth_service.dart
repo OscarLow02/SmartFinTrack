@@ -187,40 +187,6 @@ class AuthService {
     return auth.currentUser?.uid;
   }
 
-  /// Returns `null` if success, or an error string if failed.
-  Future<String?> changeEmailAddress(
-      String currentEmail, String newEmail) async {
-    // 1. Check if `newEmail` already exists in Firestore
-    final existing = await firestore
-        .collection('users')
-        .where('email', isEqualTo: newEmail)
-        .limit(1)
-        .get();
-
-    if (existing.docs.isNotEmpty) {
-      return "This email already exists. Please try another one.";
-    }
-
-    // 2. Attempt to change the user’s email in Firebase Auth
-    final user = auth.currentUser;
-    if (user == null) {
-      return "No user is currently signed in.";
-    }
-
-    try {
-      await user.updateEmail(newEmail);
-
-      // 3. Update Firestore doc
-      await firestore.collection('users').doc(user.uid).update({
-        "email": newEmail,
-      });
-
-      return null; // success
-    } catch (e) {
-      return "Error changing email: $e";
-    }
-  }
-
   // Change Password
   Future<String?> changePassword(
       String currentPassword, String newPassword) async {
@@ -247,13 +213,13 @@ class AuthService {
     }
   }
 
-  // 2FA: Enable/Disable
-  Future<void> setTwoFactorEnabled(String userId, bool enabled) async {
-    // Store the preference in Firestore or a custom 2FA service
-    await firestore.collection('users').doc(userId).update({
-      "twoFactorEnabled": enabled,
-    });
-  }
+  // // 2FA: Enable/Disable
+  // Future<void> setTwoFactorEnabled(String userId, bool enabled) async {
+  //   // Store the preference in Firestore or a custom 2FA service
+  //   await firestore.collection('users').doc(userId).update({
+  //     "twoFactorEnabled": enabled,
+  //   });
+  // }
 
   /// Delete Account
   Future<String?> deleteAccount() async {

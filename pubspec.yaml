@@ -80,7 +80,7 @@ flutter:
     - assets/logo.png
     - assets/finTrack.png
     - assets/google.png
-
+    - assets/user_icon.webp
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
