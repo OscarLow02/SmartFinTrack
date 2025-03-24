@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:smart_fintrack/screens/admin/systemmonitor/monitorfunction.dart';
 import 'package:smart_fintrack/screens/user/auth_selection.dart';
 
-
 class AuthService {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -73,7 +72,8 @@ class AuthService {
               content: Center(
                 child: Text(
                   "This account is suspended. Please contact support.",
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
               backgroundColor: Colors.red,
@@ -86,7 +86,8 @@ class AuthService {
             content: Center(
               child: Text(
                 "This email account is deactivated. Please contact support.",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             backgroundColor: Colors.red,
@@ -134,7 +135,7 @@ class AuthService {
 
   // sign out function
   Future<void> signOut(BuildContext context) async {
-    try{
+    try {
       User? user = auth.currentUser;
 
       if (user != null) {
@@ -145,9 +146,9 @@ class AuthService {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => AuthSelection()),
-        (route) => false,  // Remove all routes from stack
+        (route) => false, // Remove all routes from stack
       );
-    }catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       print("Error signing out: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -167,7 +168,7 @@ class AuthService {
 
   // record user activity log
   Future<void> recordAuthLog(String userID, String action) async {
-    try{
+    try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userID)
@@ -176,9 +177,121 @@ class AuthService {
         "action": action,
         "timestamp": FieldValue.serverTimestamp(),
       });
-    }catch(e, stackTrace) {
+    } catch (e, stackTrace) {
       print("Error recording log: $e");
       await logErrorToFirestore(e, stackTrace);
+    }
+  }
+
+  String? getCurrentUserId() {
+    return auth.currentUser?.uid;
+  }
+
+  /// Returns `null` if success, or an error string if failed.
+  Future<String?> changeEmailAddress(
+      String currentEmail, String newEmail) async {
+    // 1. Check if `newEmail` already exists in Firestore
+    final existing = await firestore
+        .collection('users')
+        .where('email', isEqualTo: newEmail)
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      return "This email already exists. Please try another one.";
+    }
+
+    // 2. Attempt to change the user’s email in Firebase Auth
+    final user = auth.currentUser;
+    if (user == null) {
+      return "No user is currently signed in.";
+    }
+
+    try {
+      await user.updateEmail(newEmail);
+
+      // 3. Update Firestore doc
+      await firestore.collection('users').doc(user.uid).update({
+        "email": newEmail,
+      });
+
+      return null; // success
+    } catch (e) {
+      return "Error changing email: $e";
+    }
+  }
+
+  // Change Password
+  Future<String?> changePassword(
+      String currentPassword, String newPassword) async {
+    final user = auth.currentUser;
+    if (user == null) {
+      return 'No user is currently signed in.';
+    }
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+
+      // Re-authenticate
+      await user.reauthenticateWithCredential(credential);
+
+      // Update password
+      await user.updatePassword(newPassword);
+
+      return null; // success
+    } catch (e) {
+      return 'Error changing password: $e';
+    }
+  }
+
+  // 2FA: Enable/Disable
+  Future<void> setTwoFactorEnabled(String userId, bool enabled) async {
+    // Store the preference in Firestore or a custom 2FA service
+    await firestore.collection('users').doc(userId).update({
+      "twoFactorEnabled": enabled,
+    });
+  }
+
+  /// Delete Account
+  Future<String?> deleteAccount() async {
+    final user = auth.currentUser;
+    if (user == null) {
+      return "No user is currently signed in.";
+    }
+
+    try {
+      // Also remove from Firestore if needed
+      await firestore.collection('users').doc(user.uid).delete();
+
+      // Delete from FirebaseAuth
+      await user.delete();
+
+      return null; // success
+    } catch (e) {
+      return "Error deleting account: $e";
+    }
+  }
+
+  Future<bool> verifyCurrentPassword(
+      String email, String currentPassword) async {
+    final user = auth.currentUser;
+    if (user == null) {
+      return false; // no user signed in
+    }
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: currentPassword,
+      );
+      // Re-authenticate
+      await user.reauthenticateWithCredential(credential);
+      return true; // success
+    } catch (e) {
+      return false; // re-auth failed
     }
   }
 }

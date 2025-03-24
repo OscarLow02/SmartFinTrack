@@ -26,24 +26,24 @@ class _userFeedbackState extends State<userFeedback> {
       isLoading = true;
     });
 
-    try{
-        await FirebaseFirestore.instance.collection("feedback").add({
-          'feedback': _feedbackController.text.trim(),
-          'timestamp': FieldValue.serverTimestamp(),
-        });
+    try {
+      await FirebaseFirestore.instance.collection("feedback").add({
+        'feedback': _feedbackController.text.trim(),
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Feedback submitted successfully!',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: Colors.green,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Feedback submitted successfully!',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-        );
+          backgroundColor: Colors.green,
+        ),
+      );
 
-        _feedbackController.clear();
-        onTextChanged('');
+      _feedbackController.clear();
+      onTextChanged('');
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,7 +55,6 @@ class _userFeedbackState extends State<userFeedback> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +80,9 @@ class _userFeedbackState extends State<userFeedback> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade400)              
-                  ),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade400)),
                   child: Stack(
                     children: [
                       TextField(
@@ -123,15 +121,16 @@ class _userFeedbackState extends State<userFeedback> {
                   child: ElevatedButton(
                     onPressed: charCount > 10 ? submitFeedback : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: charCount > 10 ? Colors.blue : Colors.grey,
+                      backgroundColor:
+                          charCount > 10 ? Colors.blue : Colors.grey,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
-                      ),          
+                      ),
                     ),
-                    child: isLoading 
-                        ? CircularProgressIndicator(color: Colors.white) 
-                        :Text('Submit'),
+                    child: isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text('Submit'),
                   ),
                 )
               ],

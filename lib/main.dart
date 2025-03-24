@@ -9,6 +9,7 @@ import 'package:smart_fintrack/screens/user/auth_selection.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_fintrack/screens/transactions/transactions_main.dart';
+import 'package:smart_fintrack/screens/settings/settings_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +18,7 @@ void main() async {
   );
 
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  
+
   FlutterError.onError = (errorDetails) {
     FirebaseCrashlytics.instance.recordFlutterError(errorDetails);
     // track the error in Firestore
@@ -28,7 +29,7 @@ void main() async {
   PlatformDispatcher.instance.onError = (error, stack) {
     FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
-  };  
+  };
 
   runApp(
     MultiProvider(
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     TransactionsPage(),
     const StatsMain(),
-    SettingsPage(),
+    SettingsMain(),
   ];
 
   void _onItemTapped(int index) {
@@ -87,7 +88,7 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.book),
             label: "Trans.",
           ),
-          BottomNavigationBarItem(  
+          BottomNavigationBarItem(
             icon: Icon(Icons.auto_graph_rounded),
             label: "Stats",
           ),
@@ -97,17 +98,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar:
-          AppBar(title: const Text("Settings"), backgroundColor: Colors.cyan),
-      body: const Center(child: Text("Settings Page")),
     );
   }
 }
