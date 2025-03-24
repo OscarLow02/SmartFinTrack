@@ -36,13 +36,13 @@ class _NoteEditState extends State<NoteEdit> {
         .collection('users')
         .doc(userId)
         .collection('notes')
-        .doc(widget.docId) // Update the specific note
+        .doc(widget.docId)
         .update({
       'note': _noteController.text,
-      'dateTime': selectedDate.toIso8601String(), // ✅ Save the updated date
+      'dateTime': selectedDate.toIso8601String(),
     });
 
-    Navigator.pop(context); // Go back to the list after updating
+    Navigator.pop(context);
   }
 
   Future<void> deleteNote() async {
@@ -56,9 +56,9 @@ class _NoteEditState extends State<NoteEdit> {
         .doc(userId)
         .collection('notes')
         .doc(widget.docId)
-        .delete(); // ✅ Delete the note from Firestore
+        .delete();
 
-    Navigator.pop(context); // Go back to the list after deleting
+    Navigator.pop(context);
   }
 
   void confirmDelete() {
@@ -69,13 +69,13 @@ class _NoteEditState extends State<NoteEdit> {
         content: const Text("Are you sure you want to delete this note?"),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context), // Cancel deletion
+            onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              deleteNote(); // Delete note from Firestore
+              Navigator.pop(context);
+              deleteNote();
             },
             child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
@@ -94,7 +94,7 @@ class _NoteEditState extends State<NoteEdit> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          // ✅ Delete Button in AppBar
+          // Delete Button in AppBar
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.red),
             onPressed: confirmDelete, // Show confirmation before deleting
@@ -106,7 +106,7 @@ class _NoteEditState extends State<NoteEdit> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Keep Date Picker First (Same as NoteAdd)
+            // Keep Date Picker First
             DatePickerExample(
               initialDate: selectedDate,
               onDateSelected: (newDate) {
@@ -118,7 +118,7 @@ class _NoteEditState extends State<NoteEdit> {
 
             const SizedBox(height: 10),
 
-            // ✅ TextField (Now below DatePicker)
+            // TextField
             TextField(
               controller: _noteController,
               maxLines: null,
@@ -130,7 +130,7 @@ class _NoteEditState extends State<NoteEdit> {
 
             const SizedBox(height: 20),
 
-            // ✅ Save Button (Consistent placement)
+            // Save Button
             ElevatedButton(
               onPressed: updateNote,
               child: const Text("Save"),

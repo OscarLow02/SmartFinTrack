@@ -37,32 +37,29 @@ class _TransactionsPageState extends State<TransactionsPage>
     super.dispose();
   }
 
-  // ✅ Change month normally, but change year when on Monthly tab
   void _changeDate(int delta) {
     setState(() {
       if (_tabController.index == 2) {
-        // Change YEAR in Monthly tab
+        // Change year in Monthly tab
         _selectedDate = DateTime(_selectedDate.year + delta, 1, 1);
       } else {
-        // Change MONTH in other tabs
+        // Change month in other tabs
         _selectedDate =
             DateTime(_selectedDate.year, _selectedDate.month + delta, 1);
       }
     });
   }
 
-  // ✅ Updates UI when switching tabs
+  // Updates UI when switching tabs
   void _onTabChanged() {
-    setState(() {}); // Forces rebuild to reflect year/month change
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     String formattedDate = _tabController.index == 2
-        ? DateFormat('yyyy')
-            .format(_selectedDate) // Show only year in Monthly tab
-        : DateFormat('MMM yyyy')
-            .format(_selectedDate); // Show full date in others
+        ? DateFormat('yyyy').format(_selectedDate)
+        : DateFormat('MMM yyyy').format(_selectedDate);
 
     return DefaultTabController(
       length: 5,
@@ -93,7 +90,7 @@ class _TransactionsPageState extends State<TransactionsPage>
                     builder: (context) => const FilterTransactionsScreen(),
                   ),
                 );
-              }, // ✅ Call the delete function
+              }, //
             ),
           ],
         ),
@@ -139,9 +136,7 @@ class _TransactionsPageState extends State<TransactionsPage>
                 children: [
                   DailyTransactions(selectedDate: _selectedDate),
                   TableBasicsExample(selectedDate: _selectedDate),
-                  MonthlyTransactions(
-                      selectedYear: _selectedDate
-                          .year), // ✅ Now passes year instead of month
+                  MonthlyTransactions(selectedYear: _selectedDate.year),
                   NoteScreen(selectedDate: _selectedDate),
                   SharedGoalsScreen(),
                 ],

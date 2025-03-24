@@ -122,9 +122,9 @@ class _EditScreenState extends State<EditScreen>
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Transaction deleted')));
 
-        // ✅ Trigger UI refresh before navigating back
+        // Trigger UI refresh before navigating back
         if (mounted) {
-          Navigator.pop(context, true); // Pass `true` to indicate deletion
+          Navigator.pop(context, true);
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -196,8 +196,7 @@ class _EditTransactionsState extends State<EditTransactions> {
 
     _selectedDate = DateTime.parse(widget.currentTransaction["dateTime"]);
     _amountController.text = widget.currentTransaction["amount"].toString();
-    _noteController.text =
-        widget.currentTransaction["note"]; // ✅ Load note field
+    _noteController.text = widget.currentTransaction["note"];
 
     List<String> categoryList =
         widget.selectedTabIndex == 0 ? _incomeCategories : _expenseCategories;
@@ -276,7 +275,7 @@ class _EditTransactionsState extends State<EditTransactions> {
       };
 
       if (_imagePath != null) {
-        transactionData['imagePath'] = _imagePath; // Save the image path
+        transactionData['imagePath'] = _imagePath;
       }
 
       if (widget.selectedTabIndex == 2) {
@@ -391,8 +390,7 @@ class _EditTransactionsState extends State<EditTransactions> {
             padding: const EdgeInsets.only(bottom: 15),
             child: TextField(
               controller: _noteController,
-              decoration: const InputDecoration(
-                  labelText: 'Note'), // ✅ Restored note input
+              decoration: const InputDecoration(labelText: 'Note'),
             ),
           ),
 

@@ -43,7 +43,7 @@ class _MonthlyTransactionsState extends State<MonthlyTransactions> {
         .collection('transactions')
         .where('dateTime', isGreaterThanOrEqualTo: "$yearFilter-01-01")
         .where('dateTime', isLessThanOrEqualTo: "$yearFilter-12-31")
-        .snapshots() // ✅ Real-time listener
+        .snapshots()
         .listen((snapshot) {
       Map<String, Map<String, double>> totals = {};
       Map<String, List<Map<String, dynamic>>> allTransactions = {};

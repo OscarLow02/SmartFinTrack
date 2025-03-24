@@ -65,11 +65,9 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
     super.initState();
 
     if (widget.type == "Income") {
-      _selectedCategory =
-          _incomeCategories[0]; // Default to first income category
+      _selectedCategory = _incomeCategories[0];
     } else {
-      _selectedCategory =
-          _expenseCategories[0]; // Default to first expense category
+      _selectedCategory = _expenseCategories[0];
     }
   }
 
@@ -101,16 +99,16 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
     try {
       String dateString = DateFormat('yyyy-MM-dd').format(_selectedDate);
 
-      // ✅ Get the current user's UID
+      // Get the current user's UID
       User? user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('User not signed in')));
         return;
       }
-      String userId = user.uid; // Get UID of logged-in user
+      String userId = user.uid;
 
-      // ✅ Prepare transaction data
+      // Prepare transaction data
       Map<String, dynamic> transactionData = {
         'amount': amount,
         'note': _noteController.text,
@@ -119,7 +117,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
       };
 
       if (_imagePath != null) {
-        transactionData['imagePath'] = _imagePath; // Save the image path
+        transactionData['imagePath'] = _imagePath;
       }
 
       if (widget.type == "Transfer") {
@@ -130,7 +128,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
         transactionData['account'] = _selectedAccount;
       }
 
-      // ✅ Save inside the user's document: "users/{uid}/transactions"
+      // Save inside the user's document
       await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
@@ -185,7 +183,7 @@ class _TransactionInputWidgetState extends State<TransactionInputWidget> {
               decoration: const InputDecoration(labelText: 'Amount'),
             ),
 
-// Show Category and Account for Income & Expense
+            // Show Category and Account for Income & Expense
             if (widget.type != "Transfer") ...[
               DropdownButtonFormField(
                 padding: const EdgeInsets.only(top: 10, bottom: 10),
@@ -320,7 +318,7 @@ class _AddScreenState extends State<AddScreen> {
           backgroundColor: _selectedColor,
           leading: IconButton(
             onPressed: () {
-              Navigator.pop(context); // ✅ Allow back navigation
+              Navigator.pop(context);
             },
             icon: const Icon(Icons.arrow_back),
           ),
@@ -369,8 +367,7 @@ class ExpenseScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: TransactionInputWidget(
-          type: "Expense"), // ExpenseScreen now properly passes type
+      body: TransactionInputWidget(type: "Expense"),
     );
   }
 }
@@ -381,8 +378,7 @@ class TransferScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: TransactionInputWidget(
-          type: "Transfer"), // ExpenseScreen now properly passes type
+      body: TransactionInputWidget(type: "Transfer"),
     );
   }
 }

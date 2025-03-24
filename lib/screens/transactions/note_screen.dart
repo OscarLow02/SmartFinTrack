@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:smart_fintrack/screens/transactions/note_edit.dart';
 
 class NoteScreen extends StatefulWidget {
-  final DateTime selectedDate; // ✅ Accept selectedDate
+  final DateTime selectedDate;
 
   const NoteScreen({super.key, required this.selectedDate});
 
@@ -35,7 +35,7 @@ class _NoteScreenState extends State<NoteScreen> {
               .where('dateTime', isGreaterThanOrEqualTo: "$yearMonthFilter-01")
               .where('dateTime', isLessThanOrEqualTo: "$yearMonthFilter-31")
               .orderBy('dateTime', descending: true)
-              .snapshots(), // ✅ Filter by selected month and year
+              .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

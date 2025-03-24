@@ -11,17 +11,17 @@ class NoteAdd extends StatefulWidget {
 
 class _NoteAddState extends State<NoteAdd> {
   final TextEditingController _noteController = TextEditingController();
-  DateTime selectedDate = DateTime.now(); // Ensure a default value
+  DateTime selectedDate = DateTime.now();
 
   Future<void> submitNote() async {
     User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) return; // Ensure user is logged in
+    if (user == null) return;
 
     String userId = user.uid;
 
     Map<String, dynamic> noteData = {
       'note': _noteController.text,
-      'dateTime': selectedDate.toIso8601String(), // Store date in ISO format
+      'dateTime': selectedDate.toIso8601String(),
     };
 
     await FirebaseFirestore.instance
@@ -129,7 +129,7 @@ class _DatePickerExampleState extends State<DatePickerExample> {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: _selectDate, // Ensure button works
+      onPressed: _selectDate,
       style: OutlinedButton.styleFrom(
         shape: const ContinuousRectangleBorder(),
       ),

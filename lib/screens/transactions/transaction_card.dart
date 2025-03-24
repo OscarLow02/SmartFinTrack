@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class TransactionCard extends StatelessWidget {
-  final QueryDocumentSnapshot transaction; // Accept Firestore document directly
+  final QueryDocumentSnapshot transaction;
   final VoidCallback? onTap;
 
   const TransactionCard({

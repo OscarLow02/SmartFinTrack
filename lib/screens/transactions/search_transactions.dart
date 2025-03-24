@@ -62,7 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              onChanged: _searchTransactions, // ✅ Search as user types
+              onChanged: _searchTransactions,
             ),
             const SizedBox(height: 10),
             Expanded(

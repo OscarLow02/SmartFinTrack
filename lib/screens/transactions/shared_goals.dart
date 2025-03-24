@@ -39,7 +39,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
     setState(() {
       _sharedGoals = snapshot.docs;
 
-      // ✅ Sort: Uncompleted goals first, completed goals last
+      // Sort uncompleted goals first then completed goals
       _sharedGoals.sort((a, b) {
         var goalA = a.data() as Map<String, dynamic>;
         var goalB = b.data() as Map<String, dynamic>;
@@ -48,11 +48,11 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
         String statusB = goalB["status"] ?? "active";
 
         if (statusA == "completed" && statusB != "completed") {
-          return 1; // Move completed goals down
+          return 1;
         } else if (statusA != "completed" && statusB == "completed") {
-          return -1; // Move uncompleted goals up
+          return -1;
         }
-        return 0; // Keep the same order otherwise
+        return 0;
       });
     });
   }
@@ -86,7 +86,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
       "targetAmount": double.parse(_targetAmountController.text),
       "currentAmount": 0,
       "createdBy": _currentUser!.uid,
-      "members": [_currentUser!.uid], // Creator is initially the only member
+      "members": [_currentUser!.uid],
       "status": "active"
     });
 
@@ -97,7 +97,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
         .doc(goalRef.id)
         .set({"goalId": goalRef.id});
 
-    _fetchSharedGoals(); // Refresh UI
+    _fetchSharedGoals();
   }
 
   Future<void> _inviteUserToGoal(String goalId, String email) async {
@@ -197,7 +197,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
       await goalRef.update({"currentAmount": FieldValue.increment(amount)});
     }
 
-    _fetchSharedGoals(); // Refresh UI
+    _fetchSharedGoals();
   }
 
   @override
@@ -251,7 +251,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ✅ Disable Invite Button if Goal is Completed
+                          // Disable Invite Button if Goal is Completed
                           if (!isCompleted)
                             IconButton(
                               icon: const Icon(Icons.person_add),
@@ -284,7 +284,7 @@ class _SharedGoalsScreenState extends State<SharedGoalsScreen> {
                               },
                             ),
 
-                          // ✅ Disable Contribution Button if Goal is Completed
+                          // Disable Contribution Button if Goal is Completed
                           if (!isCompleted)
                             IconButton(
                               icon: const Icon(Icons.attach_money),

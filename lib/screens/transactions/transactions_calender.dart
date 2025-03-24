@@ -138,13 +138,12 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
               availableGestures: AvailableGestures.none,
               calendarStyle: CalendarStyle(
                 todayDecoration: BoxDecoration(
-                  color: Colors.lightBlue.withOpacity(
-                      0.3), // Subtle highlight instead of red border
+                  color: Colors.lightBlue.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 todayTextStyle: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black, // Keep text black for readability
+                  color: Colors.black,
                 ),
               ),
               calendarBuilders: CalendarBuilders(
@@ -157,9 +156,8 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                   return Container(
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: hasEvents
-                          ? Colors.lightBlue.withOpacity(0.3)
-                          : null, // Light blue background
+                      color:
+                          hasEvents ? Colors.lightBlue.withOpacity(0.3) : null,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -226,10 +224,8 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                       itemCount: transactions.length,
                       itemBuilder: (context, index) {
                         return TransactionCard(
-                          transaction: transactions[
-                              index], // ✅ Pass Firestore document directly
+                          transaction: transactions[index],
                           onTap: () async {
-                            // ✅ Ensure user is logged in
                             User? user = FirebaseAuth.instance.currentUser;
                             if (user == null) return;
 
@@ -237,7 +233,7 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                             String selectedDate =
                                 DateFormat('yyyy-MM-dd').format(_selectedDay!);
 
-                            // ✅ Extract amount from event title
+                            // Extract amount from event title
                             String title = value[index].title;
                             RegExp amountRegex = RegExp(r'RM([\d.]+)');
                             Match? match = amountRegex.firstMatch(title);
@@ -251,10 +247,9 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                               return;
                             }
 
-                            double eventAmount = double.parse(
-                                match.group(1)!); // Extract RM amount
+                            double eventAmount = double.parse(match.group(1)!);
 
-                            // ✅ Query Firestore for the exact transaction
+                            // Query Firestore for the exact transaction
                             QuerySnapshot snapshot = await FirebaseFirestore
                                 .instance
                                 .collection('users')
@@ -263,7 +258,7 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                                 .where('dateTime', isEqualTo: selectedDate)
                                 .get();
 
-                            // ✅ Find transaction with the correct amount
+                            // Find transaction with the correct amount
                             var matchingDocs = snapshot.docs.where((doc) {
                               double dbAmount =
                                   (doc['amount'] as num).toDouble();
@@ -271,7 +266,7 @@ class _TableBasicsExampleState extends State<TableBasicsExample> {
                             }).toList();
 
                             if (matchingDocs.isNotEmpty) {
-                              // ✅ Navigate to EditScreen with the first matching transaction
+                              // Navigate to EditScreen with the first matching transaction
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
