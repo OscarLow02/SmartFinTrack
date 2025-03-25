@@ -5,7 +5,6 @@ class SettingsPrivacyPolicy extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy Privacy Policy text for SmartFinTrack.
     const dummyPolicy = """
 SmartFinTrack Privacy Policy
 

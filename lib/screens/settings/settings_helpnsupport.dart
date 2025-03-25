@@ -6,7 +6,6 @@ class SettingsHelpNSupport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Potential support info: FAQ, contact info, etc.
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

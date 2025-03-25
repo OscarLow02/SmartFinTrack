@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_fintrack/widgets/ViewMode.dart';
+import 'package:smart_fintrack/widgets/view_mode.dart';
 
 class StatsTransactionlist extends StatefulWidget {
   final String categoryGroup;

@@ -65,7 +65,6 @@ class _ViewNotificationState extends State<ViewNotification>
     );
   }
 
-  /// A placeholder for the Activity tab. You can fill this later with real data.
   Widget _buildActivityTab() {
     return const Center(
       child: Text(
@@ -86,7 +85,7 @@ class _ViewNotificationState extends State<ViewNotification>
           },
         ),
         title: const Text(
-          "Notifications",
+          "Inbox",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -99,14 +98,6 @@ class _ViewNotificationState extends State<ViewNotification>
               iconMargin: EdgeInsets.only(bottom: 4.0),
               child: Text(
                 "Notifications",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-            Tab(
-              icon: Icon(Icons.access_time, color: Colors.white),
-              iconMargin: EdgeInsets.only(bottom: 4.0),
-              child: Text(
-                "Activity",
                 style: TextStyle(color: Colors.white),
               ),
             ),

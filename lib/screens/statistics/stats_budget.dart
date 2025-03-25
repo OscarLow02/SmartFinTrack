@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:smart_fintrack/widgets/ViewMode.dart';
+import 'package:smart_fintrack/widgets/view_mode.dart';
 import 'stats_budget_settings.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:smart_fintrack/services/firestore_service.dart';
@@ -44,11 +44,6 @@ class _StatsBudgetState extends State<StatsBudget> {
     _fetchAndComputeBudget();
   }
 
-  // 1) Fetch budget from Firestore
-  // 2) Figure out the correct budget limit for the selected period/date
-  // 3) Compute spentAmount from expenseTransactions
-  // 4) Compute categoryTotals
-  // 5) Rebuild UI with setState
   Future<void> _fetchAndComputeBudget() async {
     final dateProvider = Provider.of<DateProvider>(context, listen: false);
 
@@ -77,7 +72,6 @@ class _StatsBudgetState extends State<StatsBudget> {
     }
 
     // 3) Filter expenseTransactions based on the newly selected date.
-    //    (Assuming the transaction’s "dateTime" field is in a parseable format.)
     List<Map<String, dynamic>> filteredTransactions = [];
     widget.expenseTransactions.forEach((key, tx) {
       DateTime? txDate = _tryParseDate(tx["dateTime"]);

@@ -1,7 +1,5 @@
 class StatisticsService {
   // Calculate total spending per category
-  // Input: a Map where each key maps to a transaction with full details
-  // Output: a Map where the key is the category and the value is the total amount for that category
   static Map<String, double> calculateCategoryTotals(
       Map<String, Map<String, dynamic>> transactions) {
     Map<String, double> categoryTotals = {};
@@ -21,8 +19,6 @@ class StatisticsService {
   }
 
   // Convert totals into percentages
-  // Input: a Map of transactions (same as above)
-  // Output: a Map where the key is the category and the value is the percentage share (rounded to integer)
   static Map<String, int> calculatePercentages(
       Map<String, Map<String, dynamic>> transactions) {
     // First, compute the totals per category

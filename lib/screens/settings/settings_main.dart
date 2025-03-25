@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:smart_fintrack/screens/settings/view_mode.dart';
+import 'package:smart_fintrack/screens/settings/settings_view_notifications.dart';
 import 'settings_login_security.dart';
 import 'settings_profile_settings.dart';
 import 'settings_privacy_policy.dart';

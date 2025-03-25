@@ -63,7 +63,6 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
     );
   }
 
-  /// Main list: shows login email, password field, 2-step toggle, delete account
   Widget _buildMainList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +228,7 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
       return;
     }
 
-    // Call your AuthService method to actually change the password
+    // Call AuthService method to actually change the password
     final result =
         await AuthService().changePassword(currentPassword, newPassword);
 
@@ -277,9 +276,6 @@ class _SettingsLoginSecurityState extends State<SettingsLoginSecurity> {
     );
 
     if (confirm == true) {
-      // If using FirebaseAuth:
-      // await FirebaseAuth.instance.currentUser!.delete();
-      // await FirebaseFirestore.instance.collection('users').doc(widget.userId).delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Account deleted (demo)."),

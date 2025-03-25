@@ -49,11 +49,6 @@ class FirestoreService {
   }
 
   // 🟢 1) Fetch budget data
-  // Returns a map like:
-  // {
-  //   "monthlyLimit": {"Mar 2025": 1500, "Apr 2025": 2500},
-  //   "yearlyLimit": {"2024": 10000, "2025": 20000, "2026": 10000}
-  // }
   Future<Map<String, Map<String, dynamic>>> fetchBudgetData() async {
     if (userId == null) {
       throw Exception("User not logged in");
@@ -101,15 +96,6 @@ class FirestoreService {
   }
 
   // 🟢 2) Update or Add Budget Data
-  //
-  // This function merges the new budget limit into Firestore.
-  // Example usage:
-  //   updateBudgetData("Monthly", "Mar 2025", 1500, false);
-  //     => sets monthlyLimit["Mar 2025"] = 1500
-  //
-  //   updateBudgetData("Yearly", "2025", 20000, true);
-  //     => sets yearlyLimit["2025"] = 20000
-  //        if isDefaultBudget == true, you might apply the same limit to multiple years
   Future<void> updateBudgetData({
     required String periodType, // "Monthly" or "Yearly"
     required String dateKey, // e.g. "Mar 2025" or "2025"

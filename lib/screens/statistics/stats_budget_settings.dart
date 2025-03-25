@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'stats_budget_settings_set.dart';
-import 'package:smart_fintrack/widgets/ViewMode.dart';
+import 'package:smart_fintrack/widgets/view_mode.dart';
 import 'package:smart_fintrack/services/firestore_service.dart';
 
 class StatsBudgetSettings extends StatefulWidget {

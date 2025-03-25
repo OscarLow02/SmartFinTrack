@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'stats_piechart.dart';
-import 'package:smart_fintrack/widgets/ViewMode.dart';
+import 'package:smart_fintrack/widgets/view_mode.dart';
 import 'package:smart_fintrack/services/date_provider.dart';
 import 'package:smart_fintrack/services/statistics_service.dart';
 
