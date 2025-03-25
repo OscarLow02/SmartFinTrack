@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:smart_fintrack/screens/settings/view_mode.dart';
 import 'settings_login_security.dart';
 import 'settings_profile_settings.dart';
 import 'settings_privacy_policy.dart';
@@ -81,6 +82,18 @@ class _SettingsMainState extends State<SettingsMain> {
           centerTitle: true,
           backgroundColor: const Color.fromARGB(255, 36, 89, 185),
           automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.notifications,
+                  color: Colors.white, size: 30),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ViewNotification()),
+                );
+              },
+            ),
+          ],
         ),
         body: SingleChildScrollView(
           child: Column(
