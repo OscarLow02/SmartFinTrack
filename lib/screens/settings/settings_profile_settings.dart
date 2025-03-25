@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:smart_fintrack/services/auth_service.dart';
 
 class SettingsProfileSettings extends StatefulWidget {
   final String userId;
@@ -14,8 +15,10 @@ class SettingsProfileSettings extends StatefulWidget {
 
 class _SettingsProfileSettingsState extends State<SettingsProfileSettings> {
   final TextEditingController _usernameController = TextEditingController();
+  final AuthService _authService = AuthService();
+
   String _email = "";
-  String _profilePicAsset = "assets/profile_default.png"; // default picture
+  String _profilePicAsset = "assets/user_icon.webp"; // default picture
 
   @override
   void initState() {
@@ -25,18 +28,19 @@ class _SettingsProfileSettingsState extends State<SettingsProfileSettings> {
 
   Future<void> _fetchUserDetails() async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .get();
+      // 1. Get the user data from Firestore
+      final data = await _authService.getUserProfile(widget.userId);
 
-      if (doc.exists) {
-        final data = doc.data()!;
+      if (data != null) {
         setState(() {
           _usernameController.text = data["username"] ?? "";
           _email = data["email"] ?? "";
-          // If you store a profilePic key, load that
-          // _profilePicAsset = data["profilePic"] ?? "assets/profile_default.png";
+
+          // If Firestore has a 'profilePic' field, use it; otherwise, keep default
+          if (data["profilePic"] != null &&
+              data["profilePic"].toString().isNotEmpty) {
+            _profilePicAsset = data["profilePic"];
+          }
         });
       }
     } catch (e) {
@@ -46,16 +50,19 @@ class _SettingsProfileSettingsState extends State<SettingsProfileSettings> {
 
   Future<void> _saveProfileSettings() async {
     try {
+      // 2. Update Firestore with the new username (and optionally the profilePic if needed)
       await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
           .update({
         "username": _usernameController.text.trim(),
-        // "profilePic": _profilePicAsset,
+        "profilePic": _profilePicAsset,
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile updated successfully.")),
       );
+
       // Return the updated username back to the previous screen.
       Navigator.pop(context, _usernameController.text.trim());
     } catch (e) {
@@ -66,47 +73,52 @@ class _SettingsProfileSettingsState extends State<SettingsProfileSettings> {
     }
   }
 
+  /// Shows a bottom sheet with multiple icons to choose from
+  void _changeProfilePicture() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        // List of available icons
+        final iconPaths = [
+          "assets/user_icon.webp",
+          "assets/male_1_icon.png",
+          "assets/male_2_icon.webp",
+          "assets/male_3_icon.png",
+          "assets/female_1_icon.png",
+          "assets/female_2_icon.png",
+          "assets/female_3_icon.png",
+        ];
+
+        return ListView.builder(
+          shrinkWrap: true,
+          itemCount: iconPaths.length,
+          itemBuilder: (context, index) {
+            final iconPath = iconPaths[index];
+            return ListTile(
+              leading: Image.asset(iconPath, width: 40, height: 40),
+              title: Text(iconPath.split('/').last), // e.g., "male_1_icon.png"
+              onTap: () async {
+                setState(() {
+                  _profilePicAsset = iconPath;
+                });
+
+                // 3. Update Firestore with the chosen icon
+                await _authService.updateProfilePicture(
+                    widget.userId, iconPath);
+
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
     super.dispose();
-  }
-
-  void _changeProfilePicture() {
-    // For a fixed set of assets, you might present a dialog or a new screen
-    // with options like "assets/profile1.png", "assets/profile2.png", etc.
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              leading:
-                  Image.asset("assets/profile1.png", width: 40, height: 40),
-              title: const Text("Profile 1"),
-              onTap: () {
-                setState(() {
-                  _profilePicAsset = "assets/profile1.png";
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading:
-                  Image.asset("assets/profile2.png", width: 40, height: 40),
-              title: const Text("Profile 2"),
-              onTap: () {
-                setState(() {
-                  _profilePicAsset = "assets/profile2.png";
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override

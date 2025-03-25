@@ -15,7 +15,8 @@ class SettingsHelpNSupport extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        title: const Text("Help & Support"),
+        title: const Text("Help & Support",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: const Color.fromARGB(255, 36, 89, 185),
         centerTitle: true,
       ),

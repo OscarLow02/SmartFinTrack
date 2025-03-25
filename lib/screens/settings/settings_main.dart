@@ -18,6 +18,7 @@ class _SettingsMainState extends State<SettingsMain> {
   String _userId = "";
   String _username = "";
   String _email = "";
+  String _profilePicAsset = 'assets/user_icon.webp';
   bool _isLoading = true;
 
   @override
@@ -48,6 +49,7 @@ class _SettingsMainState extends State<SettingsMain> {
           _userId = userId;
           _username = data["username"] ?? "";
           _email = data["email"] ?? "";
+          _profilePicAsset = data["profilePic"] ?? 'assets/user_icon.webp';
           _isLoading = false;
         });
       } else {
@@ -105,7 +107,7 @@ class _SettingsMainState extends State<SettingsMain> {
                   children: [
                     CircleAvatar(
                       radius: 70,
-                      backgroundImage: AssetImage('assets/user_icon.webp'),
+                      backgroundImage: AssetImage(_profilePicAsset),
                     ),
                     const SizedBox(height: 10),
                     Text(

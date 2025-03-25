@@ -213,14 +213,6 @@ class AuthService {
     }
   }
 
-  // // 2FA: Enable/Disable
-  // Future<void> setTwoFactorEnabled(String userId, bool enabled) async {
-  //   // Store the preference in Firestore or a custom 2FA service
-  //   await firestore.collection('users').doc(userId).update({
-  //     "twoFactorEnabled": enabled,
-  //   });
-  // }
-
   /// Delete Account
   Future<String?> deleteAccount() async {
     final user = auth.currentUser;
@@ -258,6 +250,31 @@ class AuthService {
       return true; // success
     } catch (e) {
       return false; // re-auth failed
+    }
+  }
+
+  /// Fetches the user's document from Firestore and returns its data.
+  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+    try {
+      final doc = await firestore.collection('users').doc(userId).get();
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      print("Error in getUserProfile: $e");
+      return null;
+    }
+  }
+
+  /// Updates the user's 'profilePic' field with the chosen icon path.
+  Future<void> updateProfilePicture(String userId, String profilePath) async {
+    try {
+      await firestore.collection('users').doc(userId).update({
+        'profilePic': profilePath,
+      });
+    } catch (e) {
+      print("Error updating profile picture: $e");
     }
   }
 }
