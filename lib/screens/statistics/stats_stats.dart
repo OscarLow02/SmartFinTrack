@@ -58,6 +58,15 @@ class _StatsTabState extends State<StatsTab>
 
   @override
   Widget build(BuildContext context) {
+    // 🟢 Combine all transactions into one map
+    final Map<String, Map<String, dynamic>> allTransactions = {};
+    allTransactions.addAll(widget.incomeTransactions);
+    allTransactions.addAll(widget.expenseTransactions);
+
+    if (allTransactions.isEmpty) {
+      // Show a loading indicator if no data is loaded yet.
+      return Center(child: CircularProgressIndicator());
+    }
     final dateProvider = Provider.of<DateProvider>(context);
 
     // Process the full transaction details to get totals and percentages.
@@ -79,11 +88,6 @@ class _StatsTabState extends State<StatsTab>
     debugPrint("StatsTab - Total Expense By Category: $totalExpenseByCategory");
     debugPrint("StatsTab - Income Percentages: $incomePercentages");
     debugPrint("StatsTab - Expense Percentages: $expensePercentages");
-
-    // 🟢 Combine all transactions into one map
-    final Map<String, Map<String, dynamic>> allTransactions = {};
-    allTransactions.addAll(widget.incomeTransactions);
-    allTransactions.addAll(widget.expenseTransactions);
 
     return Column(
       children: [
