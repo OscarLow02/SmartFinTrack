@@ -100,6 +100,7 @@ class _StatsTabState extends State<StatsTab>
           },
           initialDate: dateProvider.selectedDate,
           tabController: _tabController,
+          transactions: allTransactions,
         ),
 
         // Tab View (Income & Expenses Pie Charts)

@@ -86,6 +86,11 @@ class _StatsNoteState extends State<StatsNote>
       dateProvider.selectedPeriod,
     );
 
+    // 🟢 Combine all transactions into one map
+    final Map<String, Map<String, dynamic>> allTransactions = {};
+    allTransactions.addAll(widget.incomeTransactions);
+    allTransactions.addAll(widget.expenseTransactions);
+
     return Scaffold(
       body: Column(
         children: [
@@ -100,6 +105,7 @@ class _StatsNoteState extends State<StatsNote>
             },
             initialDate: dateProvider.selectedDate,
             tabController: _tabController,
+            transactions: allTransactions,
           ),
 
           // 🟢 Tab View: Income vs. Expense

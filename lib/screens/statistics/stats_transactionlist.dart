@@ -252,6 +252,7 @@ class _StatsTransactionListState extends State<StatsTransactionlist> {
             },
             onDateChanged: _updateDate,
             initialDate: _selectedDate,
+            transactions: widget.allTransactions,
             showTabs: false,
             showPeriodDropdown: false,
           ),

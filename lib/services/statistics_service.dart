@@ -38,4 +38,66 @@ class StatisticsService {
 
     return percentages;
   }
+
+  Future<Map<String, double>> calculateTotal({
+    required Map<String, Map<String, dynamic>> transactions,
+    required DateTime selectedDate,
+    required String viewMode,
+  }) async {
+    double totalIncome = 0.0;
+    double totalExpenses = 0.0;
+
+    // 1. Determine date boundaries based on viewMode
+    DateTime startDate;
+    DateTime endDate;
+    if (viewMode == "Monthly") {
+      startDate = DateTime(selectedDate.year, selectedDate.month, 1);
+      endDate = (selectedDate.month < 12)
+          ? DateTime(selectedDate.year, selectedDate.month + 1, 1)
+          : DateTime(selectedDate.year + 1, 1, 1);
+    } else {
+      // Yearly view
+      startDate = DateTime(selectedDate.year, 1, 1);
+      endDate = DateTime(selectedDate.year + 1, 1, 1);
+    }
+
+    // 2. Helper to parse the transaction's dateTime string.
+    DateTime? parseTransactionDate(String? dateString) {
+      if (dateString == null || dateString.isEmpty) return null;
+      try {
+        return DateTime.parse(dateString);
+      } catch (e) {
+        print("Error parsing dateString '$dateString': $e");
+        return null;
+      }
+    }
+
+    // 3. Iterate through all transactions
+    for (var txn in transactions.values) {
+      DateTime? txnDate = parseTransactionDate(txn['dateTime']);
+      if (txnDate == null) continue;
+
+      // Check if transaction date is in the defined period [startDate, endDate)
+      bool inRange = (txnDate.isAtSameMomentAs(startDate) ||
+          (txnDate.isAfter(startDate) && txnDate.isBefore(endDate)));
+      if (!inRange) continue;
+
+      // Get the transaction amount.
+      double amount =
+          (txn['amount'] is num) ? (txn['amount'] as num).toDouble() : 0.0;
+
+      // Sum based on transaction type.
+      String type = (txn['type'] ?? "").toString().toLowerCase();
+      if (type == "income") {
+        totalIncome += amount;
+      } else if (type == "expense") {
+        totalExpenses += amount;
+      }
+    }
+
+    return {
+      "income": totalIncome,
+      "expenses": totalExpenses,
+    };
+  }
 }

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:smart_fintrack/services/statistics_service.dart';
 
 class ViewMode extends StatefulWidget {
   final String selectedPeriod;
   final Function(String) onPeriodChanged;
   final Function(DateTime) onDateChanged;
+  final DateTime initialDate;
+  final Map<String, Map<String, dynamic>>? transactions;
   final TabController? tabController;
   final bool showTabs;
   final bool showPeriodDropdown;
-  final DateTime initialDate;
-  // final double totalIncome; // New parameter
-  // final double totalExpenses; // New parameter
 
   const ViewMode({
     super.key,
@@ -17,8 +17,7 @@ class ViewMode extends StatefulWidget {
     required this.onPeriodChanged,
     required this.onDateChanged,
     required this.initialDate,
-    // required this.totalIncome,
-    // required this.totalExpenses,
+    this.transactions,
     this.tabController,
     this.showTabs = true,
     this.showPeriodDropdown = true,
@@ -68,12 +67,38 @@ int getMonthIndex(String monthName) {
 
 class _ViewModeState extends State<ViewMode> {
   late DateTime selectedDate;
+  late String _selectedPeriod;
   bool isCalendarOpen = false; // Calendar popup visibility
+  double incomeTotal = 0.0;
+  double expenseTotal = 0.0;
 
   @override
   void initState() {
     super.initState();
-    selectedDate = widget.initialDate; // Use parent-provided date
+    selectedDate = widget.initialDate;
+    _selectedPeriod = widget.selectedPeriod;
+    _calculateTotals();
+  }
+
+  /// Recompute totals based on current selectedDate and selectedPeriod
+  Future<void> _calculateTotals() async {
+    if (widget.transactions == null) {
+      setState(() {
+        incomeTotal = 0.0;
+        expenseTotal = 0.0;
+      });
+      return;
+    }
+    final statsService = StatisticsService();
+    final result = await statsService.calculateTotal(
+      transactions: widget.transactions!,
+      selectedDate: selectedDate,
+      viewMode: _selectedPeriod,
+    );
+    setState(() {
+      incomeTotal = result["income"] ?? 0.0;
+      expenseTotal = result["expenses"] ?? 0.0;
+    });
   }
 
   /// 🟢 Change Date (Previous / Next)
@@ -81,20 +106,31 @@ class _ViewModeState extends State<ViewMode> {
     setState(() {
       if (widget.selectedPeriod == "Monthly") {
         int newMonth = selectedDate.month + offset;
+        // Ensure the month stays in the valid range:
+        while (newMonth > 12) {
+          newMonth -= 12;
+          selectedDate = DateTime(selectedDate.year + 1, newMonth, 1);
+        }
+        while (newMonth < 1) {
+          newMonth += 12;
+          selectedDate = DateTime(selectedDate.year - 1, newMonth, 1);
+        }
         selectedDate = DateTime(selectedDate.year, newMonth, 1);
       } else {
         selectedDate = DateTime(selectedDate.year + offset, 1, 1);
       }
     });
-
     widget.onDateChanged(selectedDate);
+
+    // Recalculate totals
+    _calculateTotals();
   }
 
   /// 🟢 Get Formatted Date for Display
   String getFormattedDate() {
-    return widget.selectedPeriod == "Monthly"
-        ? "${ViewMode.getMonthName(selectedDate.month)} ${selectedDate.year}" // "Jun 2023"
-        : "${selectedDate.year}"; // "2023"
+    return _selectedPeriod == "Monthly"
+        ? "${ViewMode.getMonthName(selectedDate.month)} ${selectedDate.year}"
+        : "${selectedDate.year}";
   }
 
   /// 🟢 Show Custom Month Picker
@@ -191,7 +227,7 @@ class _ViewModeState extends State<ViewMode> {
                       itemBuilder: (context, index) {
                         final monthName = ViewMode.getMonthName(index + 1);
                         bool isSelected = (index + 1 == pickerMonth &&
-                            pickerYear == now.year);
+                            pickerYear == selectedDate.year);
                         return GestureDetector(
                           onTap: () {
                             setState(() {
@@ -285,10 +321,14 @@ class _ViewModeState extends State<ViewMode> {
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
-                        value: widget.selectedPeriod,
+                        value: _selectedPeriod,
                         onChanged: (String? newValue) {
                           if (newValue != null) {
+                            setState(() {
+                              _selectedPeriod = newValue;
+                            });
                             widget.onPeriodChanged(newValue);
+                            _calculateTotals();
                           }
                         },
                         items: const [
@@ -322,16 +362,19 @@ class _ViewModeState extends State<ViewMode> {
           ),
         ),
 
-        // 🟢 Show Tabs If Needed
+        // 🟢 Show Tabs If Needed (with total income/expenses in labels)
         if (widget.showTabs && widget.tabController != null)
           TabBar(
             controller: widget.tabController,
-            tabs: const [Tab(text: "Income"), Tab(text: "Expense")],
-            // tabs: [
-            //   Tab(text: "Income RM ${widget.totalIncome.toStringAsFixed(2)}"),
-            //   Tab(text: "Expenses RM ${widget.totalExpenses.toStringAsFixed(2)}"),
-            // ],
             indicatorSize: TabBarIndicatorSize.tab,
+            tabs: [
+              Tab(
+                text: "Income RM ${incomeTotal.toStringAsFixed(2)}",
+              ),
+              Tab(
+                text: "Expense RM ${expenseTotal.toStringAsFixed(2)}",
+              ),
+            ],
           ),
       ],
     );
