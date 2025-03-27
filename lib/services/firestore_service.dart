@@ -144,13 +144,8 @@ class FirestoreService {
           : {};
     } else {
       // 🟢 More than one doc => decide how to handle
-      // e.g., pick the first doc, or merge all docs, etc.
       DocumentSnapshot firstDoc = snapshot.docs.first;
       docRef = firstDoc.reference;
-
-      // If you want to merge all existing docs, you’d do something similar
-      // to your fetchBudgetData() logic. For simplicity, we’ll just update
-      // the first doc here:
       docData = Map<String, dynamic>.from(firstDoc.data() as Map);
       docData["monthlyLimit"] = docData["monthlyLimit"] != null
           ? Map<String, dynamic>.from(docData["monthlyLimit"])

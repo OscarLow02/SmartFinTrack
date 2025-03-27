@@ -65,15 +65,6 @@ class _ViewNotificationState extends State<ViewNotification>
     );
   }
 
-  Widget _buildActivityTab() {
-    return const Center(
-      child: Text(
-        "Activity tab placeholder.\n(Coming soon!)",
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +101,6 @@ class _ViewNotificationState extends State<ViewNotification>
         controller: _tabController,
         children: [
           _buildNotificationsTab(),
-          _buildActivityTab(),
         ],
       ),
     );
